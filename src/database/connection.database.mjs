@@ -1,5 +1,4 @@
 /**
- * @file /home/gost/esstic_project/project_esstic_bk/src/database/connection.mjs
  * @description Ce fichier établit une connexion à la base de données MongoDB en utilisant Mongoose.
  */
 
