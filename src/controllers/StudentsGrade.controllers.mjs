@@ -7,7 +7,7 @@ import studentsGrade from '../models/StudentsGrades.models.mjs';
  */
 export const getAllStudentsGrades = async (req, res) => {
     try {
-        const grades = await studentsGrade.find();
+        const grades = await studentsGrade.find({});
         res.status(200).json(grades);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -26,7 +26,7 @@ export const getStudentGradeById = async (req, res) => {
         if (!grade) {
             return res.status(404).json({ message: "Note non trouvée" });
         }
-        res.status(200).json(grade);
+        res.status(200).json(grade.mark);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -55,11 +55,68 @@ export const createStudentGrade = async (req, res) => {
             coefficient: mark.coefficient
         }
     });
+    
     try {
         const savedGrade = await newGrade.save();
         res.status(201).json(savedGrade);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+/**
+ * Ajoute une note à un étudiant.
+ *
+ * @async
+ * @function addMark
+ * @param {Object} req - L'objet de requête HTTP.
+ * @param {Object} req.params - Les paramètres de la requête.
+ * @param {string} req.params.id - L'identifiant de l'étudiant.
+ * @param {Object} req.body - Le corps de la requête.
+ * @param {Object} req.body.newMark - Les informations de la nouvelle note.
+ * @param {string} req.body.newMark.subjectName - Le nom de la matière.
+ * @param {number} req.body.newMark.totalMark - La note totale possible.
+ * @param {number} req.body.newMark.mark - La note obtenue.
+ * @param {number} req.body.newMark.coefficient - Le coefficient de la matière.
+ * @param {Object} res - L'objet de réponse HTTP.
+ * @returns {Promise<void>} - Une promesse qui résout avec la réponse HTTP.
+ * @throws {Error} - Lance une erreur si la mise à jour échoue.
+ */
+export const addMark = async (req, res) => {
+    const { id } = req.params;
+    const { newMark } = req.body;
+
+
+    if (!newMark || !newMark.subjectName || !newMark.totalMark || !newMark.mark || !newMark.coefficient) {
+        return res.status(400).json({ message: "Les informations de la note sont requises" });
+    }
+    
+    try {
+        const studentUpgrade = await studentsGrade.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    "mark": {
+                        subjectName: newMark.subjectName,
+                        totalMark: newMark.totalMark,
+                        mark: newMark.mark,
+                        coefficient: newMark.coefficient
+                    }
+                }
+            },
+            {
+                new: true
+            }
+        );
+
+        if (!studentUpgrade) {
+            return res.status(404).json({ message: "étudiant non trouvée" });
+        }
+
+        res.status(200).json(studentUpgrade);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 

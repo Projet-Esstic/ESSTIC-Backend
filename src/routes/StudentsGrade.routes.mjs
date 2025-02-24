@@ -4,7 +4,8 @@ import {
     getStudentGradeById,
     createStudentGrade,
     updateStudentGrade,
-    deleteStudentGrade
+    deleteStudentGrade,
+    addMark
 } from '../controllers/StudentsGrade.controllers.mjs';
 
 /**
@@ -38,8 +39,10 @@ router.get('/grades', getAllStudentsGrades);
  */
 router.get('/grades/:id', getStudentGradeById);
 
+router.put('/grades/add/:d', addMark);
+
 /**
- * Crée une nouvelle note pour un étudiant.
+ * Crée une nouvelle note en semble d' un étudiant.
  * 
  * @name POST/grades
  * @function
@@ -48,7 +51,7 @@ router.get('/grades/:id', getStudentGradeById);
  * @param {Request} req - L'objet de requête HTTP.
  * @param {Response} res - L'objet de réponse HTTP.
  */
-router.post('/grades', createStudentGrade);
+router.post('/grades/create', createStudentGrade);
 
 /**
  * Met à jour la note d'un étudiant par son identifiant.
@@ -59,8 +62,10 @@ router.post('/grades', createStudentGrade);
  * @inner
  * @param {Request} req - L'objet de requête HTTP.
  * @param {Response} res - L'objet de réponse HTTP.
+ * 
+ * @todo add a rate limiter here to prevent from multiple request by an attacker
  */
-router.put('/grades/:id', updateStudentGrade);
+router.put('/grades/update/:id', updateStudentGrade);
 
 /**
  * Supprime la note d'un étudiant par son identifiant.
@@ -72,6 +77,6 @@ router.put('/grades/:id', updateStudentGrade);
  * @param {Request} req - L'objet de requête HTTP.
  * @param {Response} res - L'objet de réponse HTTP.
  */
-router.delete('/grades/:id', deleteStudentGrade);
+router.delete('/grades/delete/:id', deleteStudentGrade);
 
 export default router;
