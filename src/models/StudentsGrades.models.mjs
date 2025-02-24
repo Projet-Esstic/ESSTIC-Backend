@@ -21,6 +21,10 @@ import mongoose from 'mongoose';
  * @property {Date} updatedAt - Date de mise à jour du document. Géré automatiquement par Mongoose.
  */
 
+/**
+ * @todo: I have to add the (filière) in this model
+ */
+
 const StudentsGradeSchema = mongoose.Schema({
     studentName: {
         type: String,
@@ -29,29 +33,39 @@ const StudentsGradeSchema = mongoose.Schema({
     studentRegion: {
         type: String,
         require: [true, "Veuillez fournir le nom de la région"],
+        index: true,
     },
     studentGender: {
         type: String,
         default: "M",
+        index: true,
     },
-    mark: {
-        subjectName: {
-            type: String,
-            require: [true, "Veuillez fournir le nom de la matière"],
-        },
-        totalMark: {
-            type: Number,
-            default: 20,
-        },
-        mark: {
-            type: Number,
-            require: [true, "Veuillez fournir la note que l'étudiant a obtenue"]
-        },
-        coefficient: {
-            type: Number,
-            default: 20,
+    mark: [
+            {
+            subjectName: {
+                type: String,
+                require: [true, "Veuillez fournir le nom de la matière"],
+            },
+            totalMark: {
+                type: Number,
+                default: 20,
+            },
+            mark: {
+                type: Number,
+                require: [true, "Veuillez fournir la note que l'étudiant a obtenue"],
+                validate: {
+                    validator: function(value) {
+                        return value <= this.totalMark;
+                    },
+                    message: "La note ne peut pas dépasser la note maximale.",
+                },
+            },
+            coefficient: {
+                type: Number,
+                default: 20,
+            }
         }
-    }
+    ]
 }, 
 { timestamps: true }
 );
