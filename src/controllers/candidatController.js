@@ -1,82 +1,82 @@
-const Candidate = require('../models/Candidat');
+const Candidate = require('../models/Candidate');
 
 const mapRequestBodyToModel = (body) => {
     return {
-        etat_civil: {
-            nom: body.nom || body.firstName, 
-            pernom: body.pernom || body.lastName,
-            dateDeNaissance: body.dateDeNaissance || body.dob,
-            lieuDeNaissance: body.lieuDeNaissance || body.birthPlace,
-            situationDeFamille: body.situationDeFamille || body.maritalStatus,
-            residenceHabituelle: body.residenceHabituelle || body.residence,
-            boitePostale: body.boitePostale || body.postalBox,
-            numeroDeTelephone: body.numeroDeTelephone || body.phoneNumber,
-            referencesFamilales: {
-                nom_pere: body.nom_pere || body.fatherName,
-                nom_mere: body.nom_mere || body.motherName,
+        personalInfo: {
+            lastName: body.lastName || body.nom, 
+            firstName: body.firstName || body.pernom,
+            dateOfBirth: body.dateOfBirth || body.dateDeNaissance,
+            placeOfBirth: body.placeOfBirth || body.lieuDeNaissance,
+            maritalStatus: body.maritalStatus || body.situationDeFamille,
+            usualResidence: body.usualResidence || body.residenceHabituelle,
+            postalBox: body.postalBox || body.boitePostale,
+            phoneNumber: body.phoneNumber || body.numeroDeTelephone,
+            familyReferences: {
+                fatherName: body.fatherName || body.nom_pere,
+                motherName: body.motherName || body.nom_mere,
             },
-            addressParents: body.addressParents || body.parentsAddress,
-            paysdOrigine: body.paysdOrigine || body.countryOfOrigin,
+            parentsAddress: body.parentsAddress || body.addressParents,
+            countryOfOrigin: body.countryOfOrigin || body.paysdOrigine,
             region: body.region || body.region,
-            departementdOrigine: body.departementdOrigine || body.departmentOfOrigin,
+            departmentOfOrigin: body.departmentOfOrigin || body.departementdOrigine,
         },
-        etudesEtDipomesObtenus: {
-            etudesSecondairesOuTechniques: body.etudesSecondairesOuTechniques || body.secondaryStudies,
-            etudesSuperieures: body.etudesSuperieures || body.higherStudies,
-            diplomesObtenus: body.diplomesObtenus || body.diplomas,
-            sessionsDeFormation: {
-                participe: body.participe || body.participatedInTraining,
-                domaines: body.domaines || body.trainingDomains,
+        educationAndDegrees: {
+            secondaryEducation: body.secondaryEducation || body.etudesSecondairesOuTechniques,
+            higherEducation: body.higherEducation || body.etudesSuperieures,
+            diplomasObtained: body.diplomasObtained || body.diplomesObtenus,
+            trainingSessions: {
+                participated: body.participated || body.participe,
+                fields: body.fields || body.domaines,
             },
-            languesPartiquees: {
-                languesNationale: body.languesNationale || body.nationalLanguages,
-                languesEtrangeres_lisez_vous: body.languesEtrangeres_lisez_vous || body.foreignLanguagesRead,
-                languesEtrangeres_parlez_vous: body.languesEtrangeres_parlez_vous || body.foreignLanguagesSpeak,
-            },
-        },
-        activitesProfessionelles: {
-            activitesProfessionellesPassees: {
-                avez_vous_deja_exerce: body.avez_vous_deja_exerce || body.hasWorkedBefore,
-                professions: body.professions || body.pastProfessions,
-            },
-            activitesProfessionellesCurrent: {
-                exercez_vous: body.exercez_vous || body.isCurrentlyWorking,
-                domaines: body.domaines || body.currentWorkDomains,
-                nomEmployeur: body.nomEmployeur || body.currentEmployer,
-                depuisQuand: body.depuisQuand || body.sinceWhen,
-            },
-            institutionCommunication: {
-                avez_vous_deja_collabore: body.avez_vous_deja_collabore || body.hasCollaborated,
-                lesquelle: body.lesquelle || body.collaborations,
-            },
-            engagerApresESSTIC: {
-                etes_vous_en_rapport: body.etes_vous_en_rapport || body.isInContact,
-                lequel: body.lequel || body.contactDetails,
+            languagesSpoken: {
+                nationalLanguages: body.nationalLanguages || body.languesNationale,
+                foreignLanguagesRead: body.foreignLanguagesRead || body.languesEtrangeres_lisez_vous,
+                foreignLanguagesSpoken: body.foreignLanguagesSpoken || body.languesEtrangeres_parlez_vous,
             },
         },
-        autreActivitesPasseesOuActuelles: {
-            extra_socalariesOuExtra_professionelles: {
-                avez_vous: body.avez_vous || body.hasExtraActivities,
-                lesquelle: body.lesquelle || body.extraActivities,
+        professionalActivities: {
+            pastProfessionalActivities: {
+                hasWorkedBefore: body.hasWorkedBefore || body.avez_vous_deja_exerce,
+                pastProfessions: body.pastProfessions || body.professions,
+            },
+            currentProfessionalActivities: {
+                isCurrentlyWorking: body.isCurrentlyWorking || body.exercez_vous,
+                workFields: body.workFields || body.domaines,
+                currentEmployer: body.currentEmployer || body.nomEmployeur,
+                sinceWhen: body.sinceWhen || body.depuisQuand,
+            },
+            mediaInstitutionCollaboration: {
+                hasCollaborated: body.hasCollaborated || body.avez_vous_deja_collabore,
+                collaborations: body.collaborations || body.lesquelle,
+            },
+            postGraduationEngagement: {
+                isInContact: body.isInContact || body.etes_vous_en_rapport,
+                contactDetails: body.contactDetails || body.lequel,
             },
         },
-        renseignementsDivers: {
-            sejourne_a_l_etranger: {
-                avez_vous: body.avez_vous || body.hasStayedAbroad,
-                reason: body.reason || body.abroadReason,
-                lieu: body.lieu || body.abroadLocation,
+        otherPastOrCurrentActivities: {
+            extraProfessionalActivities: {
+                hasExtraActivities: body.hasExtraActivities || body.avez_vous,
+                extraActivities: body.extraActivities || body.lesquelle,
+            },
+        },
+        additionalInformation: {
+            abroadStay: {
+                hasStayedAbroad: body.hasStayedAbroad || body.avez_vous,
+                reason: body.reason || body.reason,
+                location: body.location || body.lieu,
                 dates: {
-                    commencement: body.commencement || body.startDate,
-                    fini: body.fini || body.endDate,
+                    startDate: body.startDate || body.commencement,
+                    endDate: body.endDate || body.fini,
                 },
-                rencontresInternationales: body.rencontresInternationales || body.internationalMeetings,
+                internationalMeetings: body.internationalMeetings || body.rencontresInternationales,
             },
         },
     };
 };
 
-// Créer un nouveau candidat
-exports.creerCandidat = async (req, res) => {
+// Create a new candidate
+exports.createCandidate = async (req, res) => {
     try {
         const mappedData = mapRequestBodyToModel(req.body);
         const newCandidate = new Candidate(mappedData);
@@ -87,13 +87,13 @@ exports.creerCandidat = async (req, res) => {
     }
 };
 
-// Mettre à jour un candidat par ID
-exports.mettreAJourCandidat = async (req, res) => {
+// Update a candidate by ID
+exports.updateCandidate = async (req, res) => {
     try {
         const mappedData = mapRequestBodyToModel(req.body);
         const updatedCandidate = await Candidate.findByIdAndUpdate(req.params.id, mappedData, { new: true });
         if (!updatedCandidate) {
-            return res.status(404).json({ message: 'Candidat non trouvé' });
+            return res.status(404).json({ message: 'Candidate not found' });
         }
         res.status(200).json(updatedCandidate);
     } catch (error) {
@@ -101,8 +101,8 @@ exports.mettreAJourCandidat = async (req, res) => {
     }
 };
 
-// Récupérer tous les candidats
-exports.recupererTousLesCandidats = async (req, res) => {
+// Get all candidates
+exports.getAllCandidates = async (req, res) => {
     try {
         const candidates = await Candidate.find();
         res.status(200).json(candidates);
@@ -111,12 +111,12 @@ exports.recupererTousLesCandidats = async (req, res) => {
     }
 };
 
-// Récupérer un candidat par ID
-exports.recupererCandidatParId = async (req, res) => {
+// Get a candidate by ID
+exports.getCandidateById = async (req, res) => {
     try {
         const candidate = await Candidate.findById(req.params.id);
         if (!candidate) {
-            return res.status(404).json({ message: 'Candidat non trouvé' });
+            return res.status(404).json({ message: 'Candidate not found' });
         }
         res.status(200).json(candidate);
     } catch (error) {
@@ -124,14 +124,14 @@ exports.recupererCandidatParId = async (req, res) => {
     }
 };
 
-// Supprimer un candidat par ID
-exports.supprimerCandidat = async (req, res) => {
+// Delete a candidate by ID
+exports.deleteCandidate = async (req, res) => {
     try {
         const deletedCandidate = await Candidate.findByIdAndDelete(req.params.id);
         if (!deletedCandidate) {
-            return res.status(404).json({ message: 'Candidat non trouvé' });
+            return res.status(404).json({ message: 'Candidate not found' });
         }
-        res.status(200).json({ message: 'Candidat supprimé avec succès' });
+        res.status(200).json({ message: 'Candidate successfully deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

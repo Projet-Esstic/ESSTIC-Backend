@@ -14,12 +14,13 @@
  * @module index
  */
 import express from "express";
-import "dotenv/config";
-import { notFound } from "./src/middlewares/notFound.middlewares.mjs";
-import route from "./src/routes/Subject.routes.mjs";
+import dotenv from "dotenv";
+// import { notFound } from "./src/middlewares/notFound.middlewares.mjs";
+// import route from "./src/routes/Subject.routes.mjs";
 import "express-async-errors";
 import { connection } from "./src/database/connection.database.mjs";
-
+import authRoutes from "./routes/authRoutes.js";
+dotenv.config();
 
 /**
  * Application Express.
@@ -36,8 +37,8 @@ const app = express();
  * @function
  * @memberof module:index
  */
-app.use('/api/v1/exam/', route);
-
+// app.use('/api/v1/exam/', route);
+app.use("/api/auth", authRoutes);
 //--------------- middlewares ----------------------
 app.use(express.json());
 app.use(express.urlencoded( {extended: true }));
@@ -47,7 +48,7 @@ app.use(express.urlencoded( {extended: true }));
  * @function
  * @memberof module:index
  */
-app.use(notFound);
+// app.use(notFound);
 
 /**
  * Port sur lequel le serveur écoute.
@@ -65,9 +66,11 @@ const port = process.env.PORT || 3000;
  * @returns {Promise<void>} Une promesse qui se résout lorsque le serveur est démarré et connecté à la base de données.
  * @throws {Error} Lance une erreur si la connexion à la base de données échoue ou si le serveur ne peut pas démarrer.
  */
+
 const start = async () => {
     try {
-        await connection(process.env.MONGO_URI);
+        console.log(process.env.MONGODB_URL)
+        await connection(process.env.MONGODB_URL);
 
         app.listen(port, () => {
             console.log(`Server listening at http://localhost:${port}`);

@@ -2,138 +2,136 @@ import mongoose, { model } from "mongoose";
 const { Schema } = mongoose;
 
 const CandidateSchema = new Schema({
-    etat_civil: {
-        nom: { 
+    personalInfo: {
+        lastName: { 
             type: String, 
-            require: true
-         },
-        pernom: { 
-            type: String, 
-            require: true 
+            required: true 
         },
-        dateDeNaissance: { 
+        firstName: { 
+            type: String, 
+            required: true 
+        },
+        dateOfBirth: { 
             type: Date, 
-            require: true 
+            required: true 
         },
-        lieuDeNaissance: { 
+        placeOfBirth: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        situationDeFamille: {
+        maritalStatus: {
             type: String,
-            enum: ['Célibataire', 'Marié', "Veuf ou divorcé"],
-            require: true
+            enum: ['Single', 'Married', "Widowed or Divorced"],
+            required: true
         },
-        residenceHabituelle: { 
+        usualResidence: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        boitePostale: { 
+        postalBox: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        numeroDeTelephone: { 
+        phoneNumber: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        referencesFamilales: {
-            nom_pere: { 
+        familyReferences: {
+            fatherName: { 
                 type: String, 
-                require: true 
+                required: true 
             },
-            nom_mere: { 
+            motherName: { 
                 type: String, 
-                require: true
+                required: true
             },
         },
-        addressParents: { 
+        parentsAddress: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        paysdOrigine: { 
+        countryOfOrigin: { 
             type: String, 
-            require: true 
+            required: true 
         },
         region: { 
             type: String, 
-            require: true 
+            required: true 
         },
-        departementdOrigine: { 
+        departmentOfOrigin: { 
             type: String, 
-            require: true 
-        },
-
-
-    },
-    etudesEtDipomesObtenus: {
-        etudesSecondairesOuTechniques: [{
-            annees: { type: String, require: true },
-            classes: { type: String, require: true },
-            etablissements: { type: String, require: true },
-        }],
-        etudesSuperieures: [{
-            annees: { type: String, require: true },
-            disciplines: { type: String, require: true },
-            facultesOuEcoles: { type: String, require: true },
-        }],
-        diplomesObtenus: [{ type: String, require: true }],
-        sessionsDeFormation: {
-            participe: { type: Boolean, require: true },
-            domaines: { type: String, require: true },
-        },
-        languesPartiquees: {
-            languesNationale: { type: String, require: true },
-            languesEtrangeres_lisez_vous: [{ type: String, require: true }],
-            languesEtrangeres_parlez_vous: [{ type: String, require: true }],
+            required: true 
         },
     },
-    activitesProfessionelles: {
-        activitesProfessionellesPassees: {
-            avez_vous_deja_exerce: { type: Boolean, require: true },
+    educationAndDegrees: {
+        secondaryOrTechnicalStudies: [{
+            years: { type: String, required: true },
+            classes: { type: String, required: true },
+            institutions: { type: String, required: true },
+        }],
+        higherEducation: [{
+            years: { type: String, required: true },
+            disciplines: { type: String, required: true },
+            facultiesOrSchools: { type: String, required: true },
+        }],
+        obtainedDegrees: [{ type: String, required: true }],
+        trainingSessions: {
+            participated: { type: Boolean, required: true },
+            fields: { type: String, required: true },
+        },
+        spokenLanguages: {
+            nationalLanguages: { type: String, required: true },
+            foreignLanguagesRead: [{ type: String, required: true }],
+            foreignLanguagesSpoken: [{ type: String, required: true }],
+        },
+    },
+    professionalActivities: {
+        pastProfessionalActivities: {
+            hasWorkedBefore: { type: Boolean, required: true },
             professions: [{
-                annees: { type: String, require: true },
-                secteurdActivite: { type: String, require: true },
-                natureDesEmpoisOcccupes: { type: String, require: true },
+                years: { type: String, required: true },
+                industry: { type: String, required: true },
+                jobNature: { type: String, required: true },
             }]
         },
-        activitesProfessionellesCurrent: {
-            exercez_vous: { type: Boolean, require: true },
-            domaines: { type: String, require: true },
-            nomEmployeur: { type: String, require: true },
-            depuisQuand: { type: Date, require: true },
+        currentProfessionalActivities: {
+            isWorking: { type: Boolean, required: true },
+            field: { type: String, required: true },
+            employerName: { type: String, required: true },
+            sinceWhen: { type: Date, required: true },
         },
-        institutionCommunication: {
-            avez_vous_deja_collabore: { type: Boolean, require: true },
-            lesquelle: [{ type: String, require: true }]
+        communicationInstitution: {
+            hasCollaborated: { type: Boolean, required: true },
+            whichOnes: [{ type: String, required: true }]
         },
-        engagerApresESSTIC: {
-            etes_vous_en_rapport: { type: Boolean, require: true },
-            lequel: { type: String, require: true },
+        postESSTICEmployment: {
+            isInContact: { type: Boolean, required: true },
+            whichOne: { type: String, required: true },
         },
     },
-    autreActivitesPasseesOuActuelles: {
-        extra_socalariesOuExtra_professionelles: {
-            avez_vous: { type: Boolean, require: true },
-            lesquelle: [{
-                natureDesActivies: { type: String, require: true },
-                organismesAuxquelSontLies: { type: String, require: true },
+    otherPastOrCurrentActivities: {
+        extraSalariedOrExtraProfessional: {
+            hasOtherActivities: { type: Boolean, required: true },
+            whichOnes: [{
+                activityNature: { type: String, required: true },
+                relatedOrganizations: { type: String, required: true },
                 dates: {
-                    commencement: { type: Date, require: true },
-                    fini: { type: Date, require: true },
+                    startDate: { type: Date, required: true },
+                    endDate: { type: Date, required: true },
                 }
             }]
         }
     },
-    renseignementsDivers: {
-        sejourne_a_l_etranger: {
-            avez_vous: { type: Boolean, require: true },
-            reason: { type: String, require: true },
-            lieu: { type: String, require: true },
+    additionalInformation: {
+        stayedAbroad: {
+            hasStayedAbroad: { type: Boolean, required: true },
+            reason: { type: String, required: true },
+            location: { type: String, required: true },
             dates: {
-                commencement: { type: Date, require: true },
-                fini: { type: Date, require: true },
+                startDate: { type: Date, required: true },
+                endDate: { type: Date, required: true },
             },
-            rencontresInternationales: [{ type: String, require: true }]
+            internationalMeetings: [{ type: String, required: true }]
         }
     },
     createdAt: {
@@ -141,6 +139,7 @@ const CandidateSchema = new Schema({
         default: Date.now,
     },
 });
+
 
 const Candidate = model('CandidatModel', CandidateSchema);
 export default Candidate;
