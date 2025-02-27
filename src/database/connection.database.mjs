@@ -2,16 +2,28 @@
  * @description Ce fichier établit une connexion à la base de données MongoDB en utilisant Mongoose.
  */
 
-import mongoose, { connect } from "mongoose";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-/**
- * Établit une connexion à la base de données MongoDB.
- * 
- * @async
- * @function connection
- * @param {string} url - L'URL de connexion à la base de données MongoDB.
- * @returns {Promise<void>} Une promesse qui se résout lorsque la connexion est établie.
- */
-export const connection = async (url) => {
-    await connect(url);
+dotenv.config();
+
+const connection = async () => {
+    try {
+        const uri = process.env.MONGODB_URI;
+        
+        if (!uri) {
+            throw new Error('MONGODB_URI is not defined in environment variables');
+        }
+
+        await mongoose.connect(uri, {
+           
+        });
+        
+        console.log('Successfully connected to MongoDB.');
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }
 };
+
+export default connection;
