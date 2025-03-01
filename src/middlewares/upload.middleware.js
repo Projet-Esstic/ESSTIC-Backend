@@ -1,8 +1,8 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
-const sharp = require('sharp');
-const { exec } = require('child_process');
+import multer from 'multer';
+import path from 'path';
+import { promises as fs } from 'fs';
+import sharp from 'sharp';
+import { exec } from 'child_process';
 
 // Configure Multer to store files in a temp directory first
 const storage = multer.diskStorage({
@@ -67,7 +67,7 @@ async function createThumbnail(filePath, documentType) {
       // For PDF files, convert first page to PNG
       const command = `pdftoppm -png -f 1 -singlefile "${filePath}" "${path.join(outputDir, baseName)}-thumbnail"`;
       await new Promise((resolve, reject) => {
-        exec(command, (error, stdout, stderr) => {
+        exec(command, (error ) => {
           if (error) {
             console.error(`Error executing pdftoppm: ${error}`);
             reject(error);
@@ -238,7 +238,7 @@ const uploadMultipleDocuments = (fieldConfig) => {
 
         // Group files by their document type
         const groupedFiles = {};
-        for (const [fieldname, files] of Object.entries(req.files)) {
+        for (const [files] of Object.entries(req.files)) {
           for (const file of files) {
             const documentType = file.originalname.split('_')[0]; // Get type from filename prefix
             if (!groupedFiles[documentType]) {
@@ -298,7 +298,7 @@ const uploadMultipleDocuments = (fieldConfig) => {
   };
 };
 
-module.exports = {
+export {
   uploadCandidateDocuments,
   uploadMultipleDocuments,
   cleanupFiles

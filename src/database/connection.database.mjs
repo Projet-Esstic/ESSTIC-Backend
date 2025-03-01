@@ -1,5 +1,5 @@
 /**
- * @description Ce fichier établit une connexion à la base de données MongoDB en utilisant Mongoose.
+ * @description This file establishes a connection to the MongoDB database using Mongoose.
  */
 
 import mongoose from 'mongoose';
@@ -15,11 +15,10 @@ const connection = async () => {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
 
-        await mongoose.connect(uri, {
-           
-        });
+        await mongoose.connect(uri, {});
         
         console.log('Successfully connected to MongoDB.');
+        return mongoose.connection; // Return the Mongoose connection
     } catch (error) {
         console.error('MongoDB connection error:', error);
         process.exit(1);

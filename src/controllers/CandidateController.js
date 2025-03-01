@@ -11,12 +11,22 @@ class CandidateController extends BaseController {
         super(Candidate);
     }
 
-    async registerForExam(req, res, next) {
-        const session = await mongoose.startSession();
-        session.startTransaction();
+    async registerForExam(req, res, ) {
+        let session = null;
         try {
-            // Parse form data from request body
-            const formData = JSON.parse(req.body.formData);
+            session = await mongoose.startSession();
+            session.startTransaction();
+
+            // Get form data based on content type
+            let formData;
+            if (req.is('multipart/form-data')) {
+                formData = req.body.formData ? JSON.parse(req.body.formData) : req.body;
+            } else {
+                formData = req.body;
+            }
+
+            console.log('Received registration data:', formData);
+            
             const {
                 email, password, firstName, lastName, dateOfBirth, gender,
                 phoneNumber, address, emergencyContact, examId,
@@ -27,6 +37,11 @@ class CandidateController extends BaseController {
                 internationalExposure,
                 fieldOfStudy
             } = formData;
+
+            // Validate required fields
+            if (!email || !firstName || !lastName || !examId || !fieldOfStudy) {
+                throw createError(400, 'Missing required fields');
+            }
 
             // Create User
             const newUser = new User({
@@ -41,9 +56,11 @@ class CandidateController extends BaseController {
                 address,
                 emergencyContact
             });
+
+            console.log('Creating new user:', newUser);
             const savedUser = await newUser.save({ session });
 
-            // Process uploaded documents
+            // Process uploaded documents if any
             const documents = {};
             if (req.files) {
                 const documentTypes = ['profileImage', 'transcript', 'diploma', 'cv', 'other'];
@@ -62,24 +79,21 @@ class CandidateController extends BaseController {
                 }
             }
 
-            // Create Candidate with additional fields
+            // Create Candidate
             const newCandidate = new Candidate({
                 user: savedUser._id,
                 selectedEntranceExam: examId,
                 documents,
                 fieldOfStudy,
-                // Add educational and professional background
                 highSchool: highSchool || {},
                 university: university || {},
                 professionalExperience: professionalExperience || [],
                 extraActivities: extraActivities || [],
                 internationalExposure: internationalExposure || []
             });
-            await newCandidate.save({ session });
 
-            // Commit transaction
-            await session.commitTransaction();
-            session.endSession();
+            console.log('Creating new candidate:', newCandidate);
+            const savedCandidate = await newCandidate.save({ session });
 
             // Generate JWT token
             const token = jwt.sign(
@@ -88,16 +102,46 @@ class CandidateController extends BaseController {
                 { expiresIn: '24h' }
             );
 
+            // Commit transaction
+            await session.commitTransaction();
+
             res.status(201).json({
                 message: "Registration successful",
                 token,
                 user: savedUser,
-                candidate: newCandidate
+                candidate: savedCandidate
             });
         } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
-            next(this.handleError(error, 'registering for exam and creating user'));
+            console.error('Registration error:', error);
+            
+            if (session) {
+                try {
+                    await session.abortTransaction();
+                } catch (abortError) {
+                    console.error('Error aborting transaction:', abortError);
+                }
+            }
+
+            // Send appropriate error response
+            if (error.name === 'ValidationError') {
+                res.status(400).json({ 
+                    message: 'Validation Error',
+                    errors: Object.values(error.errors).map(err => err.message)
+                });
+            } else if (error.code === 11000) {
+                res.status(400).json({ 
+                    message: 'Email already exists',
+                    field: Object.keys(error.keyPattern)[0]
+                });
+            } else {
+                res.status(500).json({ 
+                    message: error.message || 'Internal server error'
+                });
+            }
+        } finally {
+            if (session) {
+                session.endSession();
+            }
         }
     }
 
@@ -248,6 +292,88 @@ class CandidateController extends BaseController {
             res.json(candidates);
         } catch (error) {
             next(this.handleError(error, 'fetching all candidates'));
+        }
+    }
+
+    async updateCandidate(req, res, next) {
+        try {
+            const { id } = req.params;
+            const updateData = req.body;
+            let session = null;
+            console.log('Update data received:', updateData);
+
+            try {
+                session = await mongoose.startSession();
+                session.startTransaction();
+
+                // Find candidate
+                const candidate = await Candidate.findById(id);
+                if (!candidate) {
+                    throw createError(404, 'Candidate not found');
+                }
+
+                // Create update object with only valid fields
+                const candidateUpdateData = {};
+
+                // Handle applicationStatus if provided and valid
+                if (updateData.applicationStatus && 
+                    ['pending', 'registered', 'rejected', 'passed', 'failed'].includes(updateData.applicationStatus)) {
+                    candidateUpdateData.applicationStatus = updateData.applicationStatus;
+                }
+
+                // Helper function to check if an object has any non-empty values
+                const hasNonEmptyValues = (obj) => {
+                    if (!obj || typeof obj !== 'object') return false;
+                    return Object.values(obj).some(value => {
+                        if (Array.isArray(value)) return value.length > 0;
+                        if (typeof value === 'object' && value !== null) return hasNonEmptyValues(value);
+                        return value !== null && value !== '' && value !== undefined;
+                    });
+                };
+
+                // Handle nested objects only if they contain valid data
+                const nestedFields = ['highSchool', 'university', 'professionalExperience', 'extraActivities', 'internationalExposure'];
+                nestedFields.forEach(field => {
+                    if (updateData[field] !== undefined) {
+                        if (Array.isArray(updateData[field])) {
+                            // For arrays, only include if there are non-empty elements
+                            if (updateData[field].some(item => hasNonEmptyValues(item))) {
+                                candidateUpdateData[field] = updateData[field];
+                            }
+                        } else if (hasNonEmptyValues(updateData[field])) {
+                            // For objects, only include if they have non-empty values
+                            candidateUpdateData[field] = updateData[field];
+                        }
+                    }
+                });
+
+                console.log('Filtered update data:', candidateUpdateData);
+
+                if (Object.keys(candidateUpdateData).length > 0) {
+                    const updatedCandidate = await Candidate.findByIdAndUpdate(
+                        id,
+                        candidateUpdateData,
+                        { session, new: true, runValidators: true }
+                    );
+
+                    await session.commitTransaction();
+                    res.json(updatedCandidate);
+                } else {
+                    throw createError(400, 'No valid update data provided');
+                }
+            } catch (error) {
+                if (session) {
+                    await session.abortTransaction();
+                }
+                throw error;
+            } finally {
+                if (session) {
+                    session.endSession();
+                }
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+            next(error);
         }
     }
 }

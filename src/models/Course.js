@@ -3,13 +3,11 @@ import mongoose from 'mongoose';
 const courseSchema = new mongoose.Schema({
     courseCode: {
         type: String,
-        required: true,
         unique: true,
         trim: true
     },
     courseName: {
         type: String,
-        required: true,
         trim: true
     },
     description: {
@@ -49,22 +47,42 @@ const courseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
-    // Every course is linked to a Department.
-    department: [
-        {
+    // Department structure changes based on isEntranceExam
+    department: {
+        type: [{
+            _id: false, // Disable automatic _id for subdocuments
             departmentInfo: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Department',
-
+                required: true
             },
-            coefficient:{
+            coefficient: {
                 type: Number,
-                required: function () {
-                  return this.isEntranceExam;
+                required: function() {
+                    return this.parent().parent().isEntranceExam;
                 },
-                min: [1, 'Credit hours must be at least 1']
-              },
+                min: [1, 'Coefficient must be at least 1']
+            }
         }],
+        validate: {
+            validator: function(departments) {
+                if (this.isEntranceExam) {
+                    // For entrance exams: must have departments with coefficients
+                    return departments.length > 0 && 
+                           departments.every(dep => dep.departmentInfo && dep.coefficient);
+                } else {
+                    // For regular courses: must have at least one department without coefficient
+                    return departments.length > 0;
+                }
+            },
+            message: props => {
+                if (props.doc.isEntranceExam) {
+                    return 'Entrance exam courses must have departments with coefficients';
+                }
+                return 'Course must be associated with at least one department';
+            }
+        }
+    },
     // Specifies which academic level the course belongs to.
     level: {
         type: String,
@@ -73,32 +91,29 @@ const courseSchema = new mongoose.Schema({
             return !this.isEntranceExam;
         }
     },
-    // Specifies which field of study the course belongs to.
-    //   fieldOfStudy: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'FieldOfStudy',
-    //     required: function () {
-    //       return !this.isEntranceExam;
-    //     }
-    //   },
-    //   // Maximum possible marks for the course.
-    //   maxMarks: {
-    //     type: Number,
-    //     required: true,
-    //     min: [1, 'Maximum marks must be at least 1']
-    //   },
-    // Flag to indicate if the course is for the entrance examination.
+   
     isEntranceExam: {
         type: Boolean,
-        default: false,
-        required: true
+        default: false
     }
 }, {
     timestamps: true
 });
 
+// Pre-save middleware to validate department structure
+courseSchema.pre('save', function(next) {
+    if (this.isEntranceExam) {
+        // Validate that each department has both departmentInfo and coefficient
+        const isValid = this.department.every(dep => 
+            dep.departmentInfo && dep.coefficient && dep.coefficient >= 1
+        );
+        if (!isValid) {
+            next(new Error('Entrance exam courses must have departments with valid coefficients'));
+        }
+    }
+    next();
+});
 
-
-const Course= mongoose.model('Course', courseSchema);
+const Course = mongoose.model('Course', courseSchema);
 
 export default Course;

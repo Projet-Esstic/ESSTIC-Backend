@@ -5,9 +5,9 @@ import authenticate from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 // Routes for Department operations
-router.get('/', authenticate(), departmentController.getAllDepartments);
+router.get('/',  departmentController.getAllDepartments);
 router.get('/:id', authenticate(), departmentController.getDepartment);
-router.post('/', authenticate(['admin']), departmentController.createDepartment);
+router.post('/', departmentController.createDepartment);
 router.put('/:id', authenticate(['admin']), departmentController.updateDepartment);
 router.delete('/:id', authenticate(['admin']), departmentController.deleteDepartment);
 

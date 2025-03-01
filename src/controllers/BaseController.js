@@ -16,6 +16,8 @@ class BaseController {
         }
         if (error.code === 11000) {
             return createError(409, 'Duplicate entry found');
+        }else{
+            console.log(error);
         }
         return createError(500, 'Internal server error');
     }
