@@ -5,12 +5,15 @@ import "dotenv/config";
 import cors from "cors";
 import notFound from "./src/middlewares/notFound.middleware.js";
 import connection from "./src/database/connection.database.mjs";
-import candidateRoutes from "./src/routes/candidate.routes.js";
-import semesterRoutes from "./src/routes/semester.routes.js";
+import authRoutes from "./src/routes/auth.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
+import departmentRoutes from "./src/routes/department.routes.js";
 import courseRoutes from "./src/routes/course.routes.js";
+import candidateRoutes from "./src/routes/candidate.routes.js";
+import classRoutes from "./src/routes/class.routes.js";
+import semesterRoutes from "./src/routes/semester.routes.js";
 import studentRoutes from "./src/routes/student.routes.js";
 import entranceExamRoutes from "./src/routes/entranceExam.routes.js";
-import departmentRoutes from "./src/routes/department.routes.js";
 import "express-async-errors";
 
 // Create Express app
@@ -57,12 +60,15 @@ app.use((req, res, next) => {
 });
 
 // Register API routes
-app.use("/api/candidates", candidateRoutes);
-app.use("/api/semesters", semesterRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/departments", departmentRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/candidates", candidateRoutes);
+app.use("/api/classes", classRoutes);
+app.use("/api/semesters", semesterRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/entranceExams", entranceExamRoutes);
-app.use("/api/departments", departmentRoutes);
 
 // Middleware for handling not found routes
 app.use(notFound);
