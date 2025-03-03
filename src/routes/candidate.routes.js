@@ -19,9 +19,12 @@ router.post('/update', authenticate(['admin']), candidateController.updateMarks)
 router.get('/:id', authenticate(), candidateController.getCandidate);
 
 // Route to get all candidates, protected for admin only
-router.get('/', authenticate(['admin']), candidateController.getAllCandidates);
+router.get('/', candidateController.getAllCandidates);
 
 // Route to get document by type
 router.get('/documents/:type', authenticate(), candidateController.getDocument);
+
+// Route to update candidate by ID
+router.put('/:id', candidateController.updateCandidate);
 
 export default router; 

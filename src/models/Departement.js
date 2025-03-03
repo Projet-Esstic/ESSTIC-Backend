@@ -26,13 +26,24 @@ const departmentSchema = new mongoose.Schema({
         ref: 'User', // Tracks the department head (optional)
         required: false
     },
-   createdBy: {
+    createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true // Tracks the admin who created it
-    },
-  
-}, { timestamps: true });
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual to populate courses
+departmentSchema.virtual('coursesList', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'department.departmentInfo',
+    justOne: false
+});
 
 const Department = mongoose.model('Department', departmentSchema);
 export default Department;

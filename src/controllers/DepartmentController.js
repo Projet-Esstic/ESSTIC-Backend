@@ -1,7 +1,6 @@
 import BaseController from './BaseController.js';
 import Department from '../models/Departement.js';
 import createError from 'http-errors';
-import  Candidate  from '../models/Candidate.js';
 
 class DepartmentController extends BaseController {
     constructor() {
@@ -12,9 +11,13 @@ class DepartmentController extends BaseController {
         try {
             const departments = await Department.find({})
                 .populate('headOfDepartment', 'name email')
-                .populate('courses', 'courseName courseCode');
+                .populate('createdBy', 'name email')
+                .populate('coursesList', 'courseName courseCode');
+                
+            console.log('Fetched departments:', departments);
             res.json(departments);
         } catch (error) {
+            console.error('Error fetching departments:', error);
             next(this.handleError(error, 'fetching all departments'));
         }
     }

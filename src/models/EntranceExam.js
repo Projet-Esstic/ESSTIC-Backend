@@ -1,5 +1,3 @@
-import Candidate from './Candidate.js';
-
 import mongoose from 'mongoose';
 
 const entranceExamSchema = new mongoose.Schema({
@@ -23,10 +21,14 @@ const entranceExamSchema = new mongoose.Schema({
         maxlength: 500
     },
     department: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-        required: true,
-        index: true
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Department' }],
+        validate: {
+            validator: function(v) {
+                return Array.isArray(v) && v.length > 0;
+            },
+            message: 'At least one department is required'
+        },
+        required: true
     },
     academicYear: {
         type: String,
@@ -38,7 +40,7 @@ const entranceExamSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Course',
             required: true
-        },
+        }
     }],
     examDate: {
         type: Date,
@@ -52,11 +54,10 @@ const entranceExamSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-
     createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true // Tracks the admin who created it
+        type: String,
+        // ref: 'User',
+        // required: true // Tracks the admin who created it
     },
     status: {
         type: String,
@@ -72,17 +73,18 @@ entranceExamSchema.index({ academicYear: 1 });
 
 // Automatically update the status based on the end date
 entranceExamSchema.pre('save', function (next) {
-    if (this.examDate < new Date()) {
+    const now = new Date();
+    if (this.examDate < now) {
         this.status = 'completed'; // Mark as 'completed' if the end date has passed
-    } else if (this.endDate > new Date()) {
-        this.status = 'active'; // Mark as 'inactive' if the exam has not started yet
-    }else {
+    } else if (this.startDate > now) {
         this.status = 'inactive'; // Mark as 'inactive' if the exam has not started yet
+    }else {
+        this.status = 'active'; // Mark as 'active' if the exam has started
     }
 
     next();
 });
 
-const entranceExam = mongoose.model('EntranceExam', entranceExamSchema);
+const EntranceExam = mongoose.model('EntranceExam', entranceExamSchema);
 
-export default entranceExam;
+export default EntranceExam;

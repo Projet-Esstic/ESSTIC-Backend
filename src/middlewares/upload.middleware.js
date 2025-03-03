@@ -210,6 +210,90 @@ const uploadCandidateDocuments = () => {
   };
 };
 
+// Middleware for handling multiple document types
+const uploadMultipleDocuments = (fieldConfig) => {
+  // fieldConfig example:
+  // [
+  //   { name: 'documents', maxCount: 5 },
+  //   { name: 'images', maxCount: 3 }
+  // ]
+
+  return async (req, res, next) => {
+    upload.fields(fieldConfig)(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ 
+          status: 'error',
+          message: err.message 
+        });
+      }
+
+      try {
+        if (!req.files || Object.keys(req.files).length === 0) {
+          return next();
+        }
+
+        // Group files by their document type
+        const groupedFiles = {};
+        for (const [files] of Object.entries(req.files)) {
+          for (const file of files) {
+            const documentType = file.originalname.split('_')[0]; // Get type from filename prefix
+            if (!groupedFiles[documentType]) {
+              groupedFiles[documentType] = [];
+            }
+            groupedFiles[documentType].push(file);
+          }
+        }
+
+        // Process each group of files
+        const userId = req.body.user?.id || 'temp';
+        const processedGroups = {};
+
+        for (const [documentType, files] of Object.entries(groupedFiles)) {
+          const finalDir = path.join(__dirname, `../../uploads/${userId}/${documentType}s`);
+          const processedFiles = [];
+
+          for (const file of files) {
+            // Create thumbnail
+            const thumbnailFilename = await createThumbnail(file.path, documentType);
+            const thumbnailPath = thumbnailFilename ? 
+              path.join(path.dirname(file.path), thumbnailFilename) : null;
+
+            // Move files to final destination
+            const finalPath = await moveFile(file.path, path.join(finalDir, file.filename));
+            const finalThumbnailPath = thumbnailPath ? 
+              await moveFile(thumbnailPath, path.join(finalDir, 'thumbnails', thumbnailFilename)) : null;
+
+            processedFiles.push({
+              documentType,
+              originalName: file.originalname,
+              filename: file.filename,
+              path: finalPath,
+              thumbnailPath: finalThumbnailPath,
+              mimeType: file.mimetype,
+              size: file.size,
+              uploadedAt: new Date()
+            });
+          }
+
+          processedGroups[documentType] = processedFiles;
+        }
+
+        req.processedFiles = processedGroups;
+        next();
+      } catch (error) {
+        // Cleanup on error
+        if (req.files) {
+          const filesToCleanup = Object.values(req.files)
+            .flat()
+            .map(file => ({ path: file.path }));
+          await cleanupFiles(filesToCleanup);
+        }
+        next(error);
+      }
+    });
+  };
+};
+
 export {
   uploadCandidateDocuments,
   cleanupFiles

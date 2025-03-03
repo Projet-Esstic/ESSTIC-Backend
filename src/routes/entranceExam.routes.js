@@ -4,11 +4,14 @@ import authenticate from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// Routes for Entrance Exam operations
-router.get('/', authenticate(), entranceExamController.getAllExams);
-router.get('/:id', authenticate(), entranceExamController.getExam);
-router.post('/', authenticate(['admin']), entranceExamController.createExam);
-router.put('/:id', authenticate(['admin']), entranceExamController.updateExam);
-router.delete('/:id', authenticate(['admin']), entranceExamController.deleteExam);
+// Public routes
+router.get('/', entranceExamController.getAllEntranceExams);
+router.get('/:id', entranceExamController.getEntranceExam);
+router.get('/department/:departmentId', entranceExamController.getEntranceExamsByDepartment);
 
-export default router; 
+// Protected routes
+router.post('/', entranceExamController.createEntranceExam);
+router.put('/:id', authenticate(['admin']), entranceExamController.updateEntranceExam);
+router.delete('/:id', authenticate(['admin']), entranceExamController.deleteEntranceExam);
+
+export default router;
