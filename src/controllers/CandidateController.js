@@ -5,17 +5,33 @@ import createError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import fs from 'fs';
+import os from 'os';
 
 class CandidateController extends BaseController {
     constructor() {
         super(Candidate);
+        // Bind methods to ensure 'this' context is preserved
+        this.registerForExam = this.registerForExam.bind(this);
+        this.submitDocuments = this.submitDocuments.bind(this);
+        this.getDocument = this.getDocument.bind(this);
+        this.updateMarks = this.updateMarks.bind(this);
+        this.getCandidate = this.getCandidate.bind(this);
+        this.getAllCandidates = this.getAllCandidates.bind(this);
+    }
+    
+    handleError(error, context) {
+        console.error(`❌ Error during ${context}:`, error);
+        return {
+            status: 'error',
+            message: `Error during ${context}`,
+            details: error.message || error,
+        };
     }
 
     async registerForExam(req, res, next) {
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            // Parse form data from request body
             const formData = JSON.parse(req.body.formData);
             const {
                 email, password, firstName, lastName, dateOfBirth, gender,
@@ -27,8 +43,7 @@ class CandidateController extends BaseController {
                 internationalExposure,
                 fieldOfStudy
             } = formData;
-
-            // Create User
+    
             const newUser = new User({
                 email,
                 password,
@@ -42,8 +57,7 @@ class CandidateController extends BaseController {
                 emergencyContact
             });
             const savedUser = await newUser.save({ session });
-
-            // Process uploaded documents
+    
             const documents = {};
             if (req.files) {
                 const documentTypes = ['profileImage', 'transcript', 'diploma', 'cv', 'other'];
@@ -61,33 +75,51 @@ class CandidateController extends BaseController {
                     }
                 }
             }
-
-            // Create Candidate with additional fields
-            const newCandidate = new Candidate({
+            if (documents.profileImage) {
+                savedUser.profilePicture = documents.profileImage.path;
+                await savedUser.save({ session });
+            }
+    
+            // Create a new candidate with properly handled ObjectId fields
+            const candidateData = {
                 user: savedUser._id,
-                selectedEntranceExam: examId,
                 documents,
-                fieldOfStudy,
-                // Add educational and professional background
                 highSchool: highSchool || {},
                 university: university || {},
                 professionalExperience: professionalExperience || [],
                 extraActivities: extraActivities || [],
                 internationalExposure: internationalExposure || []
-            });
+            };
+    
+            // Only add examId if it's a valid ObjectId
+            if (examId && mongoose.Types.ObjectId.isValid(examId)) {
+                candidateData.selectedEntranceExam = new mongoose.Types.ObjectId(examId);
+            } else {
+                console.warn(`Invalid examId format: ${examId}. Expected MongoDB ObjectId.`);
+                // You may want to handle this case differently based on your application logic
+            }
+    
+            // Only add fieldOfStudy if it's a valid ObjectId
+            if (fieldOfStudy && mongoose.Types.ObjectId.isValid(fieldOfStudy)) {
+                candidateData.fieldOfStudy = new mongoose.Types.ObjectId(fieldOfStudy);
+            } else {
+                console.warn(`Invalid fieldOfStudy format: ${fieldOfStudy}. Expected MongoDB ObjectId.`);
+                // Since fieldOfStudy is required, you might want to abort the transaction
+                throw new Error('A valid fieldOfStudy ID is required');
+            }
+    
+            const newCandidate = new Candidate(candidateData);
             await newCandidate.save({ session });
-
-            // Commit transaction
+    
             await session.commitTransaction();
             session.endSession();
-
-            // Generate JWT token
+    
             const token = jwt.sign(
                 { userId: savedUser._id, roles: savedUser.roles },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
-
+    
             res.status(201).json({
                 message: "Registration successful",
                 token,
@@ -100,7 +132,6 @@ class CandidateController extends BaseController {
             next(this.handleError(error, 'registering for exam and creating user'));
         }
     }
-
     async submitDocuments(req, res, next) {
         try {
             const candidate = await Candidate.findOne({ user: req.user.userId });
@@ -252,4 +283,4 @@ class CandidateController extends BaseController {
     }
 }
 
-export default new CandidateController(); 
+export default new CandidateController();

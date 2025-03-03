@@ -27,18 +27,18 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Use routes
-app.use('/candidates', candidateRoutes);
-app.use('/semesters', semesterRoutes);
-app.use('/courses', courseRoutes);
-app.use('/students', studentRoutes);
-app.use('/entranceExams', entranceExamRoutes);
-app.use('/departments', departmentRoutes);
+app.use('/api/candidates', candidateRoutes);
+app.use('/api/semesters', semesterRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/entranceExams', entranceExamRoutes);
+app.use('/api/departments', departmentRoutes);
 
 // Middleware for handling not found routes
 app.use(notFound);
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 
 const start = async () => {

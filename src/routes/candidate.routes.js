@@ -1,15 +1,16 @@
 import express from 'express';
 import candidateController from '../controllers/CandidateController.js';
 import authenticate from '../middleware/auth.middleware.js';
-import uploadDocuments from '../middlewares/upload.middleware.js';
+import {uploadCandidateDocuments} from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
 // Route for public registration of a candidate and applying for an exam
-router.post('/register', uploadDocuments, candidateController.registerForExam);
+router.post('/register', uploadCandidateDocuments(), candidateController.registerForExam);
+
 
 // Route for submitting documents, protected for authenticated users
-router.post('/submit-documents', authenticate(), uploadDocuments, candidateController.submitDocuments);
+router.post('/submit-documents', authenticate(), uploadCandidateDocuments, candidateController.submitDocuments);
 
 // Route for updating marks, protected for admin only
 router.post('/update', authenticate(['admin']), candidateController.updateMarks);
