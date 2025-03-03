@@ -1,78 +1,89 @@
-const express = require('express');
+import express from 'express';
+import classController from '../controllers/class.controller.js';
+import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const classController = require('../controllers/class.controller');
-const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // Base route: /api/classes
 
 // Create a new class (Admin only)
-router.post('/', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.post(
+    '/',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.createClass
 );
 
 // Get all classes
-router.get('/', 
-    authenticateToken, 
-    authorizeRoles(['admin', 'teacher']), 
+router.get(
+    '/',
+    authenticate,
+    authorizeRoles(['admin', 'teacher']),
     classController.getAllClasses
 );
 
 // Get class by ID
-router.get('/:id', 
-    authenticateToken, 
-    authorizeRoles(['admin', 'teacher']), 
+router.get(
+    '/:id',
+    authenticate,
+    authorizeRoles(['admin', 'teacher']),
     classController.getClassById
 );
 
 // Update class
-router.put('/:id', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.put(
+    '/:id',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.updateClass
 );
 
 // Delete class
-router.delete('/:id', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.delete(
+    '/:id',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.deleteClass
 );
 
 // Add course to class
-router.post('/:id/courses', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.post(
+    '/:id/courses',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.addCourseToClass
 );
 
 // Remove course from class
-router.delete('/:id/courses/:courseId', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.delete(
+    '/:id/courses/:courseId',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.removeCourseFromClass
 );
 
 // Add students to class
-router.post('/:id/students', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.post(
+    '/:id/students',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.addStudentsToClass
 );
 
 // Remove student from class
-router.delete('/:id/students/:studentId', 
-    authenticateToken, 
-    authorizeRoles(['admin']), 
+router.delete(
+    '/:id/students/:studentId',
+    authenticate,
+    authorizeRoles(['admin']),
     classController.removeStudentFromClass
 );
 
 // Get class schedule
-router.get('/:id/schedule', 
-    authenticateToken, 
-    authorizeRoles(['admin', 'teacher', 'student']), 
+router.get(
+    '/:id/schedule',
+    authenticate,
+    authorizeRoles(['admin', 'teacher', 'student']),
     classController.getClassSchedule
 );
 
-module.exports = router;
+export default router;

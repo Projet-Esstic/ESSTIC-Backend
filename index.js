@@ -5,8 +5,6 @@ import "dotenv/config";
 import cors from "cors";
 import notFound from "./src/middlewares/notFound.middleware.js";
 import connection from "./src/database/connection.database.mjs";
-import authRoutes from "./src/routes/auth.routes.js";
-import userRoutes from "./src/routes/user.routes.js";
 import departmentRoutes from "./src/routes/department.routes.js";
 import courseRoutes from "./src/routes/course.routes.js";
 import candidateRoutes from "./src/routes/candidate.routes.js";
@@ -60,8 +58,6 @@ app.use((req, res, next) => {
 });
 
 // Register API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/candidates", candidateRoutes);
