@@ -1,80 +1,177 @@
-/**
- * @fileoverview Fichier principal pour démarrer l'application Express.
- * 
- * @requires express
- * @requires dotenv/config
- * @requires ./src/middlewares/notFound.middlewares.mjs
- * @requires ./src/routes/Subject.routes.mjs
- * @requires express-async-errors
- * 
- * @description Ce fichier configure et démarre un serveur Express. 
- * Il importe les modules nécessaires, configure les routes et les middlewares, 
- * et démarre le serveur sur le port spécifié dans les variables d'environnement ou sur le port 3000 par défaut.
- * 
- * @module index
- */
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 import "dotenv/config";
-import { notFound } from "./src/middlewares/notFound.middlewares.mjs";
-import route from "./src/routes/Subject.routes.mjs";
+import cors from "cors";
+import notFound from "./src/middlewares/notFound.middleware.js";
+import connection from "./src/database/connection.database.mjs";
+import departmentRoutes from "./src/routes/department.routes.js";
+import courseRoutes from "./src/routes/course.routes.js";
+import candidateRoutes from "./src/routes/candidate.routes.js";
+import classRoutes from "./src/routes/class.routes.js";
+import semesterRoutes from "./src/routes/semester.routes.js";
+import studentRoutes from "./src/routes/student.routes.js";
+import entranceExamRoutes from "./src/routes/entranceExam.routes.js";
+import authRoutes from "./src/routes/auth.routes.js";
 import "express-async-errors";
-import { connection } from "./src/database/connection.database.mjs";
 
-
-/**
- * Application Express.
- * @const {Object} app
- * @memberof module:index
- */
+// Create Express app
 const app = express();
+const server = http.createServer(app);
 
-// -------------- routes -----------------------
+// Configure Socket.IO with CORS
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:8080",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-/**
- * Routeur pour les sujets d'examen.
- * @name route
- * @function
- * @memberof module:index
- */
-app.use('/api/v1/exam/', route);
+// Configure Express CORS middleware
+app.use(
+  cors({
+    origin: [
+      "http://localhost:8080",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
-//--------------- middlewares ----------------------
+// Middleware to parse JSON and URL-encoded data
 app.use(express.json());
-app.use(express.urlencoded( {extended: true }));
-/**
- * Middleware pour gérer les routes non trouvées.
- * @name notFound
- * @function
- * @memberof module:index
- */
+app.use(express.urlencoded({ extended: true }));
+
+// Debugging: Log incoming requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Register API routes
+app.use("/api/departments", departmentRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/candidates", candidateRoutes);
+app.use("/api/classes", classRoutes);
+app.use("/api/semesters", semesterRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/entranceExams", entranceExamRoutes);
+app.use("/api/auth", authRoutes);
+
+// Middleware for handling not found routes
 app.use(notFound);
 
-/**
- * Port sur lequel le serveur écoute.
- * @const {number|string} port
- * @memberof module:index
- */
-const port = process.env.PORT || 3000;
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(500).json({ message: "Internal Server Error" });
+});
 
+// Global process-level handlers to avoid hard crashes
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection at:", reason);
+});
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
 
-/**
- * Démarre le serveur et établit une connexion à la base de données MongoDB.
- * 
- * @async
- * @function start
- * @returns {Promise<void>} Une promesse qui se résout lorsque le serveur est démarré et connecté à la base de données.
- * @throws {Error} Lance une erreur si la connexion à la base de données échoue ou si le serveur ne peut pas démarrer.
- */
-const start = async () => {
-    try {
-        await connection(process.env.MONGO_URI);
-
-        app.listen(port, () => {
-            console.log(`Server listening at http://localhost:${port}`);
-        });
-    } catch (error) {
-        console.log(error);
+// Throttling utility
+function throttle(func, delay) {
+  let lastCall = 0;
+  let timeout;
+  return function (...args) {
+    const now = Date.now();
+    const remaining = delay - (now - lastCall);
+    if (remaining <= 0) {
+      clearTimeout(timeout);
+      lastCall = now;
+      func(...args);
+    } else {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        lastCall = Date.now();
+        func(...args);
+      }, remaining);
     }
-};
+  };
+}
 
-start();
+const throttledEmitters = {};
+const throttleLimit = 1000;
+
+function getThrottledEmitter(channel) {
+  if (!throttledEmitters[channel]) {
+    throttledEmitters[channel] = throttle((change) => {
+      io.emit(channel, change);
+    }, throttleLimit);
+  }
+  return throttledEmitters[channel];
+}
+
+// Function to watch MongoDB changes with retry logic
+function watchChanges(db) {
+  const pipeline = [{ $match: { operationType: { $in: ["insert", "update", "delete"] } } }];
+  let changeStream = db.watch(pipeline);
+
+  console.log("Started watching for changes...");
+
+  changeStream.on("change", (change) => {
+    console.log("Detected change:", change);
+    const collectionName = change.ns?.coll;
+    if (collectionName) {
+      getThrottledEmitter(collectionName)(change);
+    } else {
+      io.emit("general", change);
+    }
+  });
+
+  changeStream.on("error", (error) => {
+    console.error("Change Stream error:", error);
+    setTimeout(() => {
+      console.log("Restarting Change Stream...");
+      watchChanges(db);
+    }, 5000); // Retry after 5 seconds
+  });
+
+  changeStream.on("close", () => {
+    console.warn("Change Stream closed. Reopening...");
+    setTimeout(() => {
+      watchChanges(db);
+    }, 5000); // Retry after 5 seconds
+  });
+}
+
+// Connect to MongoDB and start watching
+connection()
+  .then((mongooseConnection) => {
+    console.log("Connected to MongoDB via Mongoose");
+    const db = mongooseConnection.db;
+    watchChanges(db);
+
+    const port = process.env.PORT || 5000;
+    server.listen(port, () => {
+      console.log(`Server listening at http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Could not connect to MongoDB:", err);
+    process.exit(1);
+  });
+
+// Handle new Socket.io connections
+io.on("connection", (socket) => {
+  console.log("Client connected");
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
