@@ -12,6 +12,7 @@ import classRoutes from "./src/routes/class.routes.js";
 import semesterRoutes from "./src/routes/semester.routes.js";
 import studentRoutes from "./src/routes/student.routes.js";
 import entranceExamRoutes from "./src/routes/entranceExam.routes.js";
+import authRoutes from "./src/routes/auth.routes.js";
 import "express-async-errors";
 
 // Create Express app
@@ -65,6 +66,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/semesters", semesterRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/entranceExams", entranceExamRoutes);
+app.use("/api/auth", authRoutes);
 
 // Middleware for handling not found routes
 app.use(notFound);

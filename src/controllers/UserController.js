@@ -6,6 +6,9 @@ import createError from 'http-errors';
 class UserController extends BaseController {
     constructor() {
         super(User);
+        this.register = this.register.bind(this);
+        this.login = this.login.bind(this);
+        this.getProfile = this.getProfile.bind(this);
     }
 
     async register(req, res, next) {
@@ -20,6 +23,7 @@ class UserController extends BaseController {
 
             res.status(201).json(userResponse);
         } catch (error) {
+            console.log(this)
             next(this.handleError(error, 'user registration'));
         }
     }
@@ -64,7 +68,10 @@ class UserController extends BaseController {
 
             res.json({ token, user: user.toJSON() });
         } catch (error) {
-            next(this.handleError(error, 'user login'));
+            console.log("error test:",error.message)
+            // console.log("error test:",error.code)
+            res.json(error);
+            // next(this.handleError(error, 'user login'));
         }
     }
 

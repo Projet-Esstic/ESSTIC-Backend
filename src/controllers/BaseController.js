@@ -7,7 +7,7 @@ class BaseController {
 
     // Common error handler
     handleError(error, operation) {
-        console.error(`Error in ${operation}:`, error);
+        // console.error(`Error in ${operation}:`, error);
         if (error.name === 'ValidationError') {
             return createError(400, error.message);
         }
