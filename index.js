@@ -12,6 +12,7 @@ import classRoutes from "./src/routes/class.routes.js";
 import semesterRoutes from "./src/routes/semester.routes.js";
 import studentRoutes from "./src/routes/student.routes.js";
 import entranceExamRoutes from "./src/routes/entranceExam.routes.js";
+import authRoutes from "./src/routes/auth.routes.js";
 import "express-async-errors";
 
 // Create Express app
@@ -65,6 +66,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/semesters", semesterRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/entranceExams", entranceExamRoutes);
+app.use("/api/auth", authRoutes);
 
 // Middleware for handling not found routes
 app.use(notFound);
@@ -75,7 +77,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-// Throttling utility: Ensures the function is called at most once per "delay" ms.
+// Global process-level handlers to avoid hard crashes
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection at:", reason);
+});
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
+
+// Throttling utility
 function throttle(func, delay) {
   let lastCall = 0;
   let timeout;
@@ -96,9 +106,8 @@ function throttle(func, delay) {
   };
 }
 
-// Create a map to hold throttled emitters per channel (collection)
 const throttledEmitters = {};
-const throttleLimit = 1000; // milliseconds
+const throttleLimit = 1000;
 
 function getThrottledEmitter(channel) {
   if (!throttledEmitters[channel]) {
@@ -109,29 +118,47 @@ function getThrottledEmitter(channel) {
   return throttledEmitters[channel];
 }
 
-// Connect to MongoDB and set up change stream
+// Function to watch MongoDB changes with retry logic
+function watchChanges(db) {
+  const pipeline = [{ $match: { operationType: { $in: ["insert", "update", "delete"] } } }];
+  let changeStream = db.watch(pipeline);
+
+  console.log("Started watching for changes...");
+
+  changeStream.on("change", (change) => {
+    console.log("Detected change:", change);
+    const collectionName = change.ns?.coll;
+    if (collectionName) {
+      getThrottledEmitter(collectionName)(change);
+    } else {
+      io.emit("general", change);
+    }
+  });
+
+  changeStream.on("error", (error) => {
+    console.error("Change Stream error:", error);
+    setTimeout(() => {
+      console.log("Restarting Change Stream...");
+      watchChanges(db);
+    }, 5000); // Retry after 5 seconds
+  });
+
+  changeStream.on("close", () => {
+    console.warn("Change Stream closed. Reopening...");
+    setTimeout(() => {
+      watchChanges(db);
+    }, 5000); // Retry after 5 seconds
+  });
+}
+
+// Connect to MongoDB and start watching
 connection()
   .then((mongooseConnection) => {
     console.log("Connected to MongoDB via Mongoose");
-    const db = mongooseConnection.db; // Access the underlying MongoDB database
+    const db = mongooseConnection.db;
+    watchChanges(db);
 
-    // Watch only for insert, update, and delete events
-    const pipeline = [{ $match: { operationType: { $in: ["insert", "update", "delete"] } } }];
-    const changeStream = db.watch(pipeline);
-
-    changeStream.on("change", (change) => {
-      console.log("Detected change:", change);
-      const collectionName = change.ns?.coll;
-      console.log("Collection:", collectionName);
-      if (collectionName) {
-        getThrottledEmitter(collectionName)(change);
-      } else {
-        io.emit("general", change);
-      }
-    });
-
-    // Start the HTTP & Socket.io server after the database connection is established
-    const port = process.env.PORT || 5000; // Updated to match the error message
+    const port = process.env.PORT || 5000;
     server.listen(port, () => {
       console.log(`Server listening at http://localhost:${port}`);
     });

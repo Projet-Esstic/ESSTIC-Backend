@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import os from 'os';
+import { log } from 'console';
 
 class CandidateController extends BaseController {
     constructor() {
@@ -27,10 +28,14 @@ class CandidateController extends BaseController {
             details: error.message || error,
         };
     }
-
-    async registerForExam(req, res, ) {
+    
+    async registerForExam(req, res) {
         let session = null;
         try {
+            // Start a MongoDB session
+            session = await mongoose.startSession();
+            session.startTransaction(); // Begin the transaction
+    
             const formData = JSON.parse(req.body.formData);
             const {
                 email, password, firstName, lastName, dateOfBirth, gender,
@@ -55,14 +60,13 @@ class CandidateController extends BaseController {
                 address,
                 emergencyContact
             });
-
+    
             console.log('Creating new user:', newUser);
             const savedUser = await newUser.save({ session });
     
             const documents = {};
             if (req.files) {
                 const documentTypes = ['profileImage', 'transcript', 'diploma', 'cv', 'other'];
-                
                 for (const type of documentTypes) {
                     if (req.files[type] && req.files[type][0]) {
                         const file = req.files[type][0];
@@ -76,12 +80,13 @@ class CandidateController extends BaseController {
                     }
                 }
             }
+    
             if (documents.profileImage) {
                 savedUser.profilePicture = documents.profileImage.path;
                 await savedUser.save({ session });
             }
     
-            // Create a new candidate with properly handled ObjectId fields
+            // Create a new candidate
             const candidateData = {
                 user: savedUser._id,
                 documents,
@@ -92,22 +97,22 @@ class CandidateController extends BaseController {
                 internationalExposure: internationalExposure || []
             };
     
-            // Only add examId if it's a valid ObjectId
+            // Validate examId
             if (examId && mongoose.Types.ObjectId.isValid(examId)) {
                 candidateData.selectedEntranceExam = new mongoose.Types.ObjectId(examId);
             } else {
-                console.warn(`Invalid examId format: ${examId}. Expected MongoDB ObjectId.`);
-                // You may want to handle this case differently based on your application logic
+                throw new Error('Invalid examId format');
             }
     
-            // Only add fieldOfStudy if it's a valid ObjectId
+            // Validate fieldOfStudy
             if (fieldOfStudy && mongoose.Types.ObjectId.isValid(fieldOfStudy)) {
                 candidateData.fieldOfStudy = new mongoose.Types.ObjectId(fieldOfStudy);
             } else {
-                console.warn(`Invalid fieldOfStudy format: ${fieldOfStudy}. Expected MongoDB ObjectId.`);
-                // Since fieldOfStudy is required, you might want to abort the transaction
                 throw new Error('A valid fieldOfStudy ID is required');
             }
+    
+            console.log("Exam ID:", candidateData.selectedEntranceExam);
+            console.log("Field of Study ID:", candidateData.fieldOfStudy);
     
             const newCandidate = new Candidate(candidateData);
             const savedCandidate = await newCandidate.save({ session });
@@ -125,11 +130,11 @@ class CandidateController extends BaseController {
                 message: "Registration successful",
                 token,
                 user: savedUser,
-                candidate: savedCandidate
+                candidate: newCandidate
             });
         } catch (error) {
             console.error('Registration error:', error);
-            
+    
             if (session) {
                 try {
                     await session.abortTransaction();
@@ -137,29 +142,15 @@ class CandidateController extends BaseController {
                     console.error('Error aborting transaction:', abortError);
                 }
             }
-
-            // Send appropriate error response
-            if (error.name === 'ValidationError') {
-                res.status(400).json({ 
-                    message: 'Validation Error',
-                    errors: Object.values(error.errors).map(err => err.message)
-                });
-            } else if (error.code === 11000) {
-                res.status(400).json({ 
-                    message: 'Email already exists',
-                    field: Object.keys(error.keyPattern)[0]
-                });
-            } else {
-                res.status(500).json({ 
-                    message: error.message || 'Internal server error'
-                });
-            }
+    
+            res.status(500).json({ message: error.message || 'Internal server error' });
         } finally {
             if (session) {
                 session.endSession();
             }
         }
     }
+    
     async submitDocuments(req, res, next) {
         try {
             const candidate = await Candidate.findOne({ user: req.user.userId });
