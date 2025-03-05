@@ -5,6 +5,12 @@ import createError from 'http-errors';
 class CourseController extends BaseController {
     constructor() {
         super(Course);
+        this.getAllCourses = this.getAllCourses.bind(this);
+        this.getCourse = this.getCourse.bind(this);
+        this.createCourse = this.createCourse.bind(this);
+        this.updateCourse = this.updateCourse.bind(this);
+        this.deleteCourse = this.deleteCourse.bind(this);
+
     }
 
     async getAllCourses(req, res, next) {
