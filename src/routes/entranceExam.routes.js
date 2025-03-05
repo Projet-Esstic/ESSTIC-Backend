@@ -12,8 +12,8 @@ router.get('/department/:departmentId', entranceExamController.getEntranceExamsB
 // Protected routes
 router.post(
   '/',
-  authenticate,
-  authorizeRoles(['admin']),
+  // authenticate,
+  // authorizeRoles(['admin']),
   entranceExamController.createEntranceExam
 );
 
