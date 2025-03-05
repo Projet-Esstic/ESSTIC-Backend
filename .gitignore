@@ -129,8 +129,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-<<<<<<< HEAD
-data_test.json
-=======
+data_test*.json
 .idea
->>>>>>> a1fab2b (finish the grading system and the behavior system)
