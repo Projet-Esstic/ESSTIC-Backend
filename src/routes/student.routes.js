@@ -27,8 +27,8 @@ router.post(
  * this route will provide information useful for the stats about a student, such as his academic level,
  * behavior and so on
  */
-router.post('/brief/:id', studentBrief)
-router.post('/add', addStudent)
-router.post('/register/', registerStudent)
+router.post('/brief/:id', authenticate, studentBrief)
+// router.post('/add', addStudent)
+// router.post('/register/', registerStudent)
 
 export default router; 

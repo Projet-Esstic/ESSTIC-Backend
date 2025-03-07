@@ -3,7 +3,7 @@ import Student from '../models/Student.js';
 import User from '../models/User.js';
 import createError from 'http-errors';
 
-export const addStudent = async (req, res) => {
+/*export const addStudent = async (req, res) => {
     try {
         const {
             user,
@@ -121,10 +121,14 @@ export const registerStudent = async (req, res) => {
         console.error('Error in registerStudent:', error);
         return res.status(500).json({ message: 'Internal server error.' });
     }
-};
+};*/
 
 export const studentBrief = async (req, res) => {
     try {
+        /**
+         * I prefer to do like this because I assumes that other people thant the student will have access to this route
+         * like the teachers, the student's parent and the admin for example.
+         */
         const { id } = req.params;
         const { year } = req.body;
 

@@ -162,12 +162,27 @@ const classController = {
         try {
             const { id } = req.params;
             const { studentIds } = req.body;
+
+            // ensuring that the student ids is an array
+            if (!Array.isArray(studentIds)) {
+                throw new ApiError(400, "studentId must be an array")
+            }
+            if (studentIds.length === 0) {
+                throw new ApiError(400, "studentIds can not be empty");
+            }
             
             validateObjectId(id);
             studentIds.forEach(validateObjectId);
 
-            const classData = await Class.findById(id);
-            if (!classData) throw new ApiError(404, 'Class not found');
+            const updatedClass = await Class.findByIdAndUpdate(
+                id,
+                { $addToSet: { students: { $each: studentIds } } }, // Add students if they don't already exist
+                { new: true } // Return the updated document
+            );
+    
+            if (!updatedClass) {
+                throw new ApiError(404, 'Class not found');
+            }
 
             const newStudents = studentIds.filter(
                 studentId => !classData.students.includes(studentId)
@@ -175,10 +190,12 @@ const classController = {
 
             if (newStudents.length === 0) throw new ApiError(400, 'All students are already in this class');
 
-            classData.students.push(...newStudents);
-            await classData.save();
-
-            res.status(200).json({ success: true, message: 'Students added to class successfully', data: classData });
+            res.status(200).json({
+                success: true,
+                message: 'Students added to class successfully',
+                data: updatedClass,
+                newStudents: newStudents,
+            });
         } catch (error) {
             throw new ApiError(error.statusCode || 500, error.message);
         }
