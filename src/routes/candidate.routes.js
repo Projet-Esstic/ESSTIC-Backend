@@ -32,6 +32,6 @@ router.get('/',
 router.get('/documents/:type', authenticate, candidateController.getDocument);
 
 // Route to update candidate by ID, protected for authenticated users
-router.put('/:id', authenticate, candidateController.updateCandidate);
+router.put('/:id', candidateController.updateCandidate);
 
 export default router;

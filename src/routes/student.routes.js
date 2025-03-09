@@ -28,7 +28,7 @@ router.post(
  * behavior and so on
  */
 router.post('/brief/:id', studentBrief)
-router.post('/add', addStudent)
-router.post('/register/', registerStudent)
+// router.post('/add', addStudent)
+// router.post('/register/', registerStudent)
 
 export default router; 
