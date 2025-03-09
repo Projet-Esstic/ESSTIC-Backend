@@ -6,7 +6,7 @@ import { uploadCandidateDocuments } from '../middlewares/upload.middleware.js';
 const router = express.Router();
 
 // Route for public registration of a candidate and applying for an exam
-router.post('/register', uploadCandidateDocuments(), candidateController.registerForExam);
+//router.post('/register', uploadCandidateDocuments(), candidateController.registerForExam);
 
 // Route for submitting documents, protected for authenticated users
 router.post('/submit-documents', authenticate, uploadCandidateDocuments(), candidateController.submitDocuments);

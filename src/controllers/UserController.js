@@ -2,6 +2,7 @@ import BaseController from './BaseController.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import createError from 'http-errors';
+import bcrypt from 'bcrypt';
 
 class UserController extends BaseController {
     constructor() {
@@ -51,16 +52,12 @@ class UserController extends BaseController {
                 return res.status(400).json({ message: 'Email is already registered.' });
             }
     
-            // Hash the password
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-    
             // Create the new user
             const newUser = new User({
                 firstName,
                 lastName,
                 email,
-                password: hashedPassword,
+                password: password,
                 phoneNumber,
                 dateOfBirth,
                 gender,
@@ -92,7 +89,7 @@ class UserController extends BaseController {
         }
     }
 
-    async login(req, res, next) {
+    async login(req, res) {
         try {
             const { email, password } = req.body;
             
@@ -111,6 +108,8 @@ class UserController extends BaseController {
 
             // Verify password
             const isValid = await user.comparePassword(password);
+            console.log(isValid);
+            
             if (!isValid) {
                 await user.incrementLoginAttempts();
                 throw createError(401, 'Invalid credentials');
