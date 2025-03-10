@@ -9,15 +9,15 @@ const router = express.Router();
 
 // Route to get all personnel (Admin only)
 // router.get('/all', authenticate, authorizeRoles(['admin']), PersonnelController.getAllPersonnel);
-router.get('/', authenticate, authorizeRoles(['admin']),  PersonnelController.getAllPersonnel);
+router.get('/',  PersonnelController.getAllPersonnel);
 // Route to get a single personnel by ID
-router.get('/:id', authenticate, PersonnelController.getPersonnel);
+router.get('/:id', PersonnelController.getPersonnel);
 
 // Route to create a new personnel
-router.post('/register', authenticate, authorizeRoles(['admin']), PersonnelController.registerPersonnel);
+router.post('/register', PersonnelController.registerPersonnel);
 
 // Route to update personnel details (Admin only)
-router.put('/:id', authenticate, authorizeRoles(['admin']), PersonnelController.updatePersonnel);
+router.put('/:id',  PersonnelController.updatePersonnel);
 
 // Route to submit documents for a personnel
 router.post('/:id/submit-documents', authenticate, PersonnelController.submitDocuments);
