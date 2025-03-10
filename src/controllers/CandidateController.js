@@ -115,7 +115,7 @@ class CandidateController extends BaseController {
             console.log("Field of Study ID:", candidateData.fieldOfStudy);
     
             const newCandidate = new Candidate(candidateData);
-            await newCandidate.save({ session });
+            const savedCandidate = await newCandidate.save({ session });
     
             await session.commitTransaction();
             session.endSession();
@@ -232,47 +232,55 @@ class CandidateController extends BaseController {
 
     async updateMarks(req, res, next) {
         try {
-            const { candidateId } = req.params;
-            const { courseId, mark } = req.body;
+            const candidatesToUpdate = req.body; // Expecting an array of { candidateId, courseId, mark }
 
-            // Verify if user has permission (admin only)
-            if (!req.user.roles.includes('admin')) {
-                throw createError(403, 'Unauthorized to update entrance exam marks');
-            }
+            console.log('Candidates to update:', candidatesToUpdate); // Log the entire request body
 
-            const candidate = await Candidate.findById(candidateId);
-            if (!candidate) {
-                throw createError(404, 'Candidate not found');
-            }
+            const updatedCandidates = [];
 
-            // Create modification record
-            const modification = {
-                preMark: candidate.Marks.find(m => m.courseId.toString() === courseId)?.mark?.currentMark || 0,
-                modMark: mark,
-                modifiedBy: {
-                    name: req.user.fullName,
-                    userId: req.user.userId
+            for (const { candidateId, courseId, mark } of candidatesToUpdate) {
+                // Log the mark object for each candidate
+                console.log(`Updating candidate ID: ${candidateId}, mark:`, mark);
+
+                const candidate = await Candidate.findById(candidateId);
+                if (!candidate) {
+                    throw createError(404, `Candidate not found for ID: ${candidateId}`);
                 }
-            };
 
-            // Update or add new mark
-            const markIndex = candidate.Marks.findIndex(m => m.courseId.toString() === courseId);
-            if (markIndex === -1) {
-                candidate.Marks.push({
-                    courseId,
-                    mark: {
-                        currentMark: mark,
-                        modified: [modification]
+                // Extract the current mark and modification details
+                const currentMark = mark.currentMark;
+                const modificationDetails = mark.modified[0]; // Assuming there's at least one modification record
+
+                // Create modification record
+                const modification = {
+                    preMark: modificationDetails.preMark || 0,
+                    modMark: currentMark,
+                    modifiedBy: {
+                        name: modificationDetails.modifiedBy.name,
+                        userId: modificationDetails.modifiedBy.userId
                     }
-                });
-            } else {
-                candidate.Marks[markIndex].mark.currentMark = mark;
-                candidate.Marks[markIndex].mark.modified.push(modification);
+                };
+
+                // Update or add new mark
+                const markIndex = candidate.Marks.findIndex(m => m.courseId.toString() === courseId);
+                if (markIndex === -1) {
+                    candidate.Marks.push({
+                        courseId,
+                        mark: {
+                            currentMark,
+                            modified: [modification]
+                        }
+                    });
+                } else {
+                    candidate.Marks[markIndex].mark.currentMark = currentMark;
+                    candidate.Marks[markIndex].mark.modified.push(modification);
+                }
+
+                await candidate.save();
+                updatedCandidates.push(candidate);
             }
 
-            await candidate.save();
-
-            res.json(candidate);
+            res.json(updatedCandidates);
         } catch (error) {
             next(this.handleError(error, 'update entrance exam marks'));
         }
