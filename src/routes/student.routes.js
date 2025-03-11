@@ -1,7 +1,7 @@
 import express from 'express';
 // import studentController from '../controllers/StudentController.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
-import studentController, { studentBrief } from '../controllers/StudentController.js';
+import studentController, { studentBrief, registerStudent } from '../controllers/StudentController.js';
 // import authenticate from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -23,6 +23,13 @@ router.post(
   studentController.updateMarks
 );
 
+
+router.post(
+  '/add',
+  // authenticate,
+  // authorizeRoles(['admin', 'teacher']),
+  registerStudent
+);
 /**
  * this route will provide information useful for the stats about a student, such as his academic level,
  * behavior and so on

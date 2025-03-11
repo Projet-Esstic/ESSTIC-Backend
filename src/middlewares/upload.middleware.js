@@ -11,22 +11,26 @@ const __dirname = dirname(__filename);
 
 console.log('Initializing multer setup...');
 
+// Define storage configuration with relative paths
 const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: async function (req, file, cb) {
+    // Create relative paths from project root
+    const baseDir = './uploads';
+    const userDir = path.join(baseDir, req.body.user?.id || 'temp');
+    const documentType = file.fieldname;
+    const finalPath = path.join(userDir, documentType);
+
     try {
-      const tempDir = path.join(__dirname, '../../uploads/temp');
-      console.log(`Creating temp directory at ${tempDir}`);
-      await fs.mkdir(tempDir, { recursive: true });
-      cb(null, tempDir);
-    } catch (err) {
-      console.error('Error creating temp directory:', err);
-      cb(err);
+      // Create directories if they don't exist
+      await fs.mkdir(finalPath, { recursive: true });
+      cb(null, finalPath);
+    } catch (error) {
+      cb(error);
     }
   },
-  filename: (req, file, cb) => {
-    const timestampedFilename = `${Date.now()}-${file.originalname}`;
-    console.log(`Saving file as ${timestampedFilename}`);
-    cb(null, timestampedFilename);
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
@@ -71,49 +75,32 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
+// Create thumbnail with relative path
 async function createThumbnail(filePath, documentType) {
-  const fileExt = path.extname(filePath).toLowerCase();
-  const baseName = path.basename(filePath, fileExt);
-  const outputDir = path.dirname(filePath);
-  const thumbnailPath = path.join(outputDir, `${baseName}-thumbnail.png`);
-
-  try {
-    console.log(`Creating thumbnail for ${filePath}`);
-    if (fileExt === '.pdf') {
-      const command = `pdftoppm -png -f 1 -singlefile "${filePath}" "${path.join(outputDir, baseName)}-thumbnail"`;
-      console.log(`Executing command: ${command}`);
-      await new Promise((resolve, reject) => {
-        exec(command, (error) => {
-          if (error) {
-            console.error(`pdftoppm error:`, error);
-            return reject(error);
-          }
-          resolve();
-        });
-      });
-    } else {
-      const dimensions = {
-        profilePicture: { width: 150, height: 150 },
-        transcript: { width: 300, height: 400 },
-        diploma: { width: 300, height: 400 },
-        cv: { width: 300, height: 400 },
-        receipt: { width: 300, height: 400 } // ➕ Added receipt dimensions
-      };
-      const { width, height } = dimensions[documentType] || dimensions.transcript;
-      console.log(`Resizing image to ${width}x${height}`);
-      await sharp(filePath)
-        .resize(width, height)
-        .toFile(thumbnailPath);
-    }
-    return path.basename(thumbnailPath);
-  } catch (error) {
-    console.error('Thumbnail creation error:', error);
+  if (!['profileImage', 'transcript', 'diploma', 'receipt'].includes(documentType)) {
     return null;
   }
+
+  const thumbnailDir = path.join(path.dirname(filePath), 'thumbnails');
+  await fs.mkdir(thumbnailDir, { recursive: true });
+
+  const thumbnailPath = path.join(
+    thumbnailDir,
+    'thumb-' + path.basename(filePath)
+  );
+
+  await sharp(filePath)
+    .resize(200, 200, {
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .toFile(thumbnailPath);
+
+  return thumbnailPath;
 }
 
 async function moveFile(tempPath, finalPath) {
@@ -123,66 +110,47 @@ async function moveFile(tempPath, finalPath) {
   return finalPath;
 }
 
+// Process uploaded files with relative paths
+async function processUploadedFiles(files, userId) {
+  const processedFiles = [];
+
+  for (const [documentType, fileArray] of Object.entries(files)) {
+    for (const file of fileArray) {
+      const thumbnailPath = await createThumbnail(file.path, documentType);
+      
+      processedFiles.push({
+        documentType,
+        path: path.relative('.', file.path), // Convert to relative path
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedAt: new Date(),
+        thumbnailPath: thumbnailPath ? path.relative('.', thumbnailPath) : null // Convert to relative path
+      });
+    }
+  }
+
+  return processedFiles;
+}
+
+// Cleanup files using relative paths
 async function cleanupFiles(files) {
   for (const file of files) {
     try {
       if (file.path) {
-        console.log(`Deleting temp file: ${file.path}`);
         await fs.unlink(file.path);
-      }
-      if (file.thumbnailPath) {
-        console.log(`Deleting temp thumbnail: ${file.thumbnailPath}`);
-        await fs.unlink(file.thumbnailPath);
+        
+        // Try to remove thumbnail if it exists
+        const thumbnailPath = path.join(
+          path.dirname(file.path),
+          'thumbnails',
+          'thumb-' + path.basename(file.path)
+        );
+        await fs.unlink(thumbnailPath).catch(() => {}); // Ignore if thumbnail doesn't exist
       }
     } catch (error) {
-      console.error('Cleanup error:', error);
+      console.error(`Error cleaning up file ${file.path}:`, error);
     }
-  }
-}
-
-async function processUploadedFiles(files, userId) {
-  const processedFiles = [];
-  const filesToCleanup = [];
-
-  console.log('Processing uploaded files...');
-  try {
-    for (const [fieldname, fileArray] of Object.entries(files)) {
-      for (const file of fileArray) {
-        const documentType = fieldname.split('_')[0];
-        const finalDir = path.join(__dirname, `../../uploads/${userId}/${documentType}s`);
-        console.log(`Processing file: ${file.originalname} for ${documentType}`);
-
-        const thumbnailFilename = await createThumbnail(file.path, documentType);
-        const thumbnailPath = thumbnailFilename
-          ? path.join(path.dirname(file.path), thumbnailFilename)
-          : null;
-
-        const finalPath = await moveFile(file.path, path.join(finalDir, file.filename));
-        const finalThumbnailPath = thumbnailPath
-          ? await moveFile(thumbnailPath, path.join(finalDir, 'thumbnails', thumbnailFilename))
-          : null;
-
-        processedFiles.push({
-          documentType,
-          originalName: file.originalname,
-          filename: file.filename,
-          path: finalPath,
-          thumbnailPath: finalThumbnailPath,
-          mimeType: file.mimetype,
-          size: file.size,
-          uploadedAt: new Date()
-        });
-
-        filesToCleanup.push({ path: file.path, thumbnailPath });
-      }
-    }
-
-    console.log('Finished processing files.');
-    return processedFiles;
-  } catch (error) {
-    console.error('Error processing files:', error);
-    await cleanupFiles(filesToCleanup);
-    throw error;
   }
 }
 

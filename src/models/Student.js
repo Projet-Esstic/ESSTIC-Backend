@@ -9,14 +9,14 @@ const studentSchema = new mongoose.Schema({
         unique: true
     },
     // Reference to the applicant record (previous entrance exam data)
-    applicant: {
+    candidate: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Candidate',
         required: true,
         unique: true
     },
     // Academic Information
-    academicInfo: {
+    academicInfo: [{
         annualTotalPoints: { type: Number, default: 0, min: 0 },
         annualAverage: { type: Number, default: 0, min: 0, max: 20 },
         annualRank: { type: Number, default: null },
@@ -108,18 +108,25 @@ const studentSchema = new mongoose.Schema({
                 }
             }
         }]
-    }
+    }]
 }, { timestamps: true });
 
 // Pre-save middleware to set default marks to 0 if a student has not written and has not justified
 studentSchema.pre('save', function (next) {
-    this.academicInfo.courses.forEach(course => {
-        ['CA', 'EXAM', 'RESIT'].forEach(examType => {
-            if (!course.marks[examType].hasWritten && !course.marks[examType].hasJustified) {
-                course.marks[examType].currentMark = 0;
+    // Check if courses exist before trying to iterate
+    if (this.academicInfo && this.academicInfo.courses) {
+        this.academicInfo.courses.forEach(course => {
+            if (course && course.marks) {
+                ['CA', 'EXAM', 'RESIT'].forEach(examType => {
+                    if (course.marks[examType] && 
+                        !course.marks[examType].hasWritten && 
+                        !course.marks[examType].hasJustified) {
+                        course.marks[examType].currentMark = 0;
+                    }
+                });
             }
         });
-    });
+    }
     next();
 });
 
