@@ -1,0 +1,1162 @@
+[
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-02-28T18:17:41.422Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-02-28T18:17:41.422Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-02-28T18:17:41.422Z"
+            },
+            "other": {
+                "uploadedAt": "2025-02-28T18:17:41.422Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Test High School",
+            "majorSubjects": []
+        },
+        "_id": "67c1fdc5d273ecb741dffc55",
+        "user": {
+            "address": {
+                "street": "123 Main St",
+                "city": "Yaoundé",
+                "country": "Cameroon"
+            },
+            "emergencyContact": {
+                "name": "Emergency Contact",
+                "relationship": "Parent"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c1fdc4d273ecb741dffc53",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Test",
+            "lastName": "Candidate",
+            "email": "test.candidate@esstic.cm",
+            "phoneNumber": "+237612345678",
+            "dateOfBirth": "1995-01-15T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-02-28T18:17:40.962Z",
+            "updatedAt": "2025-02-28T18:17:40.962Z",
+            "__v": 0,
+            "fullName": "Test Candidate",
+            "isLocked": false,
+            "id": "67c1fdc4d273ecb741dffc53"
+        },
+        "applicationStatus": "rejected",
+        "selectedEntranceExam": "67c1f547d7e8b7e7d7d531c4",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [],
+        "extraActivities": [],
+        "internationalExposure": [],
+        "applicationDate": "2025-02-28T18:17:41.425Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 20,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 20,
+                            "_id": "67c7929a7c7ee730a9fcc48c",
+                            "dateModified": "2025-03-04T23:54:02.999Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929a7c7ee730a9fcc48b"
+            },
+            {
+                "mark": {
+                    "currentMark": 2,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 2,
+                            "_id": "67c80351e23419cae68e3931",
+                            "dateModified": "2025-03-05T07:54:57.260Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80351e23419cae68e3930"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-02-28T18:17:41.432Z",
+        "updatedAt": "2025-03-05T10:24:11.798Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-01T03:28:30.768Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-01T03:28:30.768Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-01T03:28:30.768Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-01T03:28:30.768Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "",
+            "yearCompleted": null,
+            "majorSubjects": []
+        },
+        "university": {
+            "universityName": "",
+            "degree": "",
+            "yearCompleted": null
+        },
+        "_id": "67c27ede7d34bf9e2a6ec7b0",
+        "user": {
+            "address": {
+                "street": "123 Main St",
+                "city": "Yaoundé",
+                "country": "Cameroon"
+            },
+            "emergencyContact": {
+                "name": "Emergency Contact",
+                "relationship": "Parent"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c27ede7d34bf9e2a6ec7ae",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Test",
+            "lastName": "Candidate",
+            "email": "testn.candidate@esstic.cm",
+            "phoneNumber": "+237612345678",
+            "dateOfBirth": "1995-01-15T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-01T03:28:30.273Z",
+            "updatedAt": "2025-03-01T03:28:30.273Z",
+            "__v": 0,
+            "fullName": "Test Candidate",
+            "isLocked": false,
+            "id": "67c27ede7d34bf9e2a6ec7ae"
+        },
+        "applicationStatus": "pending",
+        "selectedEntranceExam": "67c1f547d7e8b7e7d7d531c4",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [],
+        "extraActivities": [],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-01T03:28:30.772Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 10,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 10,
+                            "_id": "67c7929b7c7ee730a9fcc490",
+                            "dateModified": "2025-03-04T23:54:03.582Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929b7c7ee730a9fcc48f"
+            },
+            {
+                "mark": {
+                    "currentMark": 20,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 20,
+                            "_id": "67c80352e23419cae68e3937",
+                            "dateModified": "2025-03-05T07:54:58.908Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80352e23419cae68e3936"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-01T03:28:30.782Z",
+        "updatedAt": "2025-03-05T11:50:42.528Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-03T16:18:12.145Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T16:18:12.145Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T16:18:12.145Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T16:18:12.146Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c5d644f0b813d0b038d184",
+        "user": {
+            "address": {
+                "street": "sdfc",
+                "city": "Yaoundé",
+                "state": "vrv",
+                "country": "Cameroon"
+            },
+            "emergencyContact": {
+                "name": "Somo Rean Giggs Kinyuy",
+                "relationship": "sdv",
+                "phone": "652132586"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c5d643f0b813d0b038d182",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Somo",
+            "lastName": "Kinyuy",
+            "email": "somo@gmail.com",
+            "phoneNumber": "652132586",
+            "dateOfBirth": "2025-03-03T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-03T16:18:11.643Z",
+            "updatedAt": "2025-03-03T16:18:11.643Z",
+            "__v": 0,
+            "fullName": "Somo Kinyuy",
+            "isLocked": false,
+            "id": "67c5d643f0b813d0b038d182"
+        },
+        "applicationStatus": "pending",
+        "selectedEntranceExam": "67c59f4af3c3aa13feff1ecf",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c5d644f0b813d0b038d185"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c5d644f0b813d0b038d186"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c5d644f0b813d0b038d187"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c5d644f0b813d0b038d188"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c5d644f0b813d0b038d189"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T16:18:12.157Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 12,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 12,
+                            "_id": "67c7929c7c7ee730a9fcc499",
+                            "dateModified": "2025-03-04T23:54:04.128Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929c7c7ee730a9fcc498"
+            },
+            {
+                "mark": {
+                    "currentMark": 20,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 20,
+                            "_id": "67c80354e23419cae68e3942",
+                            "dateModified": "2025-03-05T07:55:00.130Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80354e23419cae68e3941"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-03T16:18:12.166Z",
+        "updatedAt": "2025-03-05T07:55:00.135Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-03T16:20:22.003Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T16:20:22.003Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T16:20:22.003Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T16:20:22.003Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c5d6c6eb3949d1d365ad6f",
+        "user": {
+            "address": {
+                "street": "ac",
+                "city": "as",
+                "state": "asc",
+                "country": "asc"
+            },
+            "emergencyContact": {
+                "name": "asc",
+                "relationship": "fvf",
+                "phone": "652132586"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c5d6c5eb3949d1d365ad6d",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Somo",
+            "lastName": "Kinyuy",
+            "email": "bgdg@gmial.com",
+            "phoneNumber": "652132586",
+            "dateOfBirth": "2025-03-19T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-03T16:20:21.568Z",
+            "updatedAt": "2025-03-03T16:20:21.568Z",
+            "__v": 0,
+            "fullName": "Somo Kinyuy",
+            "isLocked": false,
+            "id": "67c5d6c5eb3949d1d365ad6d"
+        },
+        "applicationStatus": "registered",
+        "selectedEntranceExam": "67c1f99b6887eeff5d82bd64",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c5d6c6eb3949d1d365ad70"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c5d6c6eb3949d1d365ad71"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c5d6c6eb3949d1d365ad72"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c5d6c6eb3949d1d365ad73"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c5d6c6eb3949d1d365ad74"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T16:20:22.010Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 12,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 12,
+                            "_id": "67c7929c7c7ee730a9fcc4a2",
+                            "dateModified": "2025-03-04T23:54:04.714Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929c7c7ee730a9fcc4a1"
+            },
+            {
+                "mark": {
+                    "currentMark": 1,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 1,
+                            "_id": "67c80355e23419cae68e394d",
+                            "dateModified": "2025-03-05T07:55:01.265Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80355e23419cae68e394c"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-03T16:20:22.016Z",
+        "updatedAt": "2025-03-05T11:51:18.405Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-03T16:26:10.684Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T16:26:10.685Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T16:26:10.685Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T16:26:10.685Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c5d822a33ae04d6ee0edc8",
+        "user": {
+            "address": {
+                "street": "adc",
+                "city": "Yaoundé",
+                "state": "sacd",
+                "country": "Cameroon"
+            },
+            "emergencyContact": {
+                "name": "gt",
+                "relationship": "tg",
+                "phone": "652132586"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c5d822a33ae04d6ee0edc6",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Somo",
+            "lastName": "Kinyuy",
+            "email": "sacs@bvhdc.com",
+            "phoneNumber": "652132586",
+            "dateOfBirth": "2025-03-04T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-03T16:26:10.304Z",
+            "updatedAt": "2025-03-03T16:26:10.304Z",
+            "__v": 0,
+            "fullName": "Somo Kinyuy",
+            "isLocked": false,
+            "id": "67c5d822a33ae04d6ee0edc6"
+        },
+        "applicationStatus": "registered",
+        "selectedEntranceExam": "67c59987de6df1d0587b8661",
+        "fieldOfStudy": "67c1f547d7e8b7e777d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c5d822a33ae04d6ee0edc9"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c5d822a33ae04d6ee0edca"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c5d822a33ae04d6ee0edcb"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c5d822a33ae04d6ee0edcc"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c5d822a33ae04d6ee0edcd"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T16:26:10.699Z",
+        "Marks": [],
+        "payment": [],
+        "createdAt": "2025-03-03T16:26:10.707Z",
+        "updatedAt": "2025-03-05T11:51:19.906Z",
+        "__v": 0
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-03T16:34:01.180Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T16:34:01.180Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T16:34:01.180Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T16:34:01.180Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c5d9f9a33ae04d6ee0edf3",
+        "user": {
+            "address": {
+                "street": "sdc",
+                "city": "dsc",
+                "state": "dac",
+                "country": "sdc"
+            },
+            "emergencyContact": {
+                "name": "dsc",
+                "relationship": "sdc",
+                "phone": "652132586"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c5d9f8a33ae04d6ee0edf1",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Somo",
+            "lastName": "Kinyuy",
+            "email": "dcs@nd.com",
+            "phoneNumber": "652132586",
+            "dateOfBirth": "2025-03-11T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-03T16:34:00.627Z",
+            "updatedAt": "2025-03-03T16:34:00.627Z",
+            "__v": 0,
+            "fullName": "Somo Kinyuy",
+            "isLocked": false,
+            "id": "67c5d9f8a33ae04d6ee0edf1"
+        },
+        "applicationStatus": "pending",
+        "selectedEntranceExam": "67c294d281118cb6ab18de35",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c5d9f9a33ae04d6ee0edf4"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c5d9f9a33ae04d6ee0edf5"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c5d9f9a33ae04d6ee0edf6"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c5d9f9a33ae04d6ee0edf7"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c5d9f9a33ae04d6ee0edf8"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T16:34:01.186Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 13,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 13,
+                            "_id": "67c7929d7c7ee730a9fcc4ab",
+                            "dateModified": "2025-03-04T23:54:05.225Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929d7c7ee730a9fcc4aa"
+            },
+            {
+                "mark": {
+                    "currentMark": 6,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 6,
+                            "_id": "67c80356e23419cae68e3958",
+                            "dateModified": "2025-03-05T07:55:02.422Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80356e23419cae68e3957"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-03T16:34:01.190Z",
+        "updatedAt": "2025-03-05T07:55:02.427Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "path": "/home/blackheart/CascadeProjects/ESSTIC-Backend/uploads/temp/1741034855123-COVER PAGE.pdf",
+                "originalName": "COVER PAGE.pdf",
+                "mimeType": "application/pdf",
+                "size": 790468,
+                "uploadedAt": "2025-03-03T20:47:36.520Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T20:47:36.528Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T20:47:36.528Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T20:47:36.528Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c615682ec0891dd8040fb4",
+        "user": null,
+        "applicationStatus": "registered",
+        "selectedEntranceExam": "67c1f99b6887eeff5d82bd64",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c615682ec0891dd8040fb5"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c615682ec0891dd8040fb6"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c615682ec0891dd8040fb7"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c615682ec0891dd8040fb8"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c615682ec0891dd8040fb9"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T20:47:36.537Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 18,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 18,
+                            "_id": "67c7929d7c7ee730a9fcc4b4",
+                            "dateModified": "2025-03-04T23:54:05.736Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929d7c7ee730a9fcc4b3"
+            },
+            {
+                "mark": {
+                    "currentMark": 1,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 1,
+                            "_id": "67c80357e23419cae68e3963",
+                            "dateModified": "2025-03-05T07:55:03.673Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80357e23419cae68e3962"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-03T20:47:36.548Z",
+        "updatedAt": "2025-03-05T11:51:21.900Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "path": "/home/blackheart/CascadeProjects/ESSTIC-Backend/uploads/temp/1741035332578-COVER PAGE.pdf",
+                "originalName": "COVER PAGE.pdf",
+                "mimeType": "application/pdf",
+                "size": 790468,
+                "uploadedAt": "2025-03-03T20:55:34.292Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-03T20:55:34.303Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-03T20:55:34.303Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-03T20:55:34.303Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67c61746ca0fc6cefd2a50e3",
+        "user": {
+            "address": {
+                "street": "niat",
+                "city": "bangangte",
+                "state": "OUest",
+                "country": "cameroun"
+            },
+            "emergencyContact": {
+                "name": "tchoua",
+                "relationship": "uncle",
+                "phone": "652258969"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67c61745ca0fc6cefd2a50e1",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "nana",
+            "lastName": "tchoua",
+            "email": "tchouanana74@gmail.com",
+            "phoneNumber": "650186981",
+            "dateOfBirth": "2002-10-16T00:00:00.000Z",
+            "gender": "male",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-03T20:55:33.279Z",
+            "updatedAt": "2025-03-09T04:20:03.885Z",
+            "__v": 0,
+            "fullName": "nana tchoua",
+            "isLocked": false,
+            "id": "67c61745ca0fc6cefd2a50e1"
+        },
+        "applicationStatus": "registered",
+        "selectedEntranceExam": "67c1f99b6887eeff5d82bd64",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67c61746ca0fc6cefd2a50e4"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67c61746ca0fc6cefd2a50e5"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67c61746ca0fc6cefd2a50e6"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67c61746ca0fc6cefd2a50e7"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67c61746ca0fc6cefd2a50e8"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-03T20:55:34.322Z",
+        "Marks": [
+            {
+                "mark": {
+                    "currentMark": 16,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 16,
+                            "_id": "67c7929e7c7ee730a9fcc4bd",
+                            "dateModified": "2025-03-04T23:54:06.351Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1ef11911a7151da0dc7bf",
+                "_id": "67c7929e7c7ee730a9fcc4bc"
+            },
+            {
+                "mark": {
+                    "currentMark": 8,
+                    "modified": [
+                        {
+                            "modifiedBy": {
+                                "name": "john",
+                                "userId": "67c27ede7d34bf9e2a6ec7b0"
+                            },
+                            "preMark": 0,
+                            "modMark": 8,
+                            "_id": "67c80358e23419cae68e396e",
+                            "dateModified": "2025-03-05T07:55:04.786Z"
+                        }
+                    ]
+                },
+                "courseId": "67c1f305729df3be1bd60613",
+                "_id": "67c80358e23419cae68e396d"
+            }
+        ],
+        "payment": [],
+        "createdAt": "2025-03-03T20:55:34.330Z",
+        "updatedAt": "2025-03-05T11:51:23.286Z",
+        "__v": 2
+    },
+    {
+        "documents": {
+            "transcript": {
+                "uploadedAt": "2025-03-07T17:11:23.544Z"
+            },
+            "diploma": {
+                "uploadedAt": "2025-03-07T17:11:23.544Z"
+            },
+            "cv": {
+                "uploadedAt": "2025-03-07T17:11:23.544Z"
+            },
+            "other": {
+                "uploadedAt": "2025-03-07T17:11:23.544Z"
+            }
+        },
+        "highSchool": {
+            "schoolName": "Lycée Victor Hugo",
+            "yearCompleted": 2018,
+            "majorSubjects": [
+                "Mathématiques, Physique-Chimie, Sciences de la Vie et de la Terre"
+            ]
+        },
+        "university": {
+            "universityName": "Université Paris-Saclay",
+            "degree": "Licence en Informatique",
+            "yearCompleted": 2021
+        },
+        "_id": "67cb28bb20193a9ad81b6b1d",
+        "user": {
+            "address": {
+                "street": "sdv",
+                "city": "Yaoundé",
+                "state": "sdv",
+                "country": "Cameroon"
+            },
+            "emergencyContact": {
+                "name": "Somo Rean Giggs Kinyuy",
+                "relationship": "sdv",
+                "phone": "652132586"
+            },
+            "preferences": {
+                "notifications": {
+                    "email": true,
+                    "sms": false,
+                    "push": false
+                },
+                "language": "en",
+                "theme": "light"
+            },
+            "_id": "67cb28ba20193a9ad81b6b1b",
+            "roles": [
+                "candidate"
+            ],
+            "firstName": "Somo",
+            "lastName": "Kinyuy",
+            "email": "kdchda@d.ocm",
+            "phoneNumber": "652132586",
+            "dateOfBirth": "2025-03-07T00:00:00.000Z",
+            "gender": "female",
+            "profilePicture": "default-profile.png",
+            "status": "active",
+            "createdAt": "2025-03-07T17:11:22.973Z",
+            "updatedAt": "2025-03-07T17:11:22.973Z",
+            "__v": 0,
+            "fullName": "Somo Kinyuy",
+            "isLocked": false,
+            "id": "67cb28ba20193a9ad81b6b1b"
+        },
+        "applicationStatus": "pending",
+        "selectedEntranceExam": "67c294d281118cb6ab18de35",
+        "fieldOfStudy": "67c1f547d7e8b7e7d7d531c4",
+        "professionalExperience": [
+            {
+                "company": "Acme Solutions",
+                "position": "Développeur Web",
+                "yearsOfExperience": 2,
+                "_id": "67cb28bb20193a9ad81b6b1e"
+            },
+            {
+                "company": "Tech Innovations",
+                "position": "Stagiaire en développement",
+                "yearsOfExperience": 1,
+                "_id": "67cb28bb20193a9ad81b6b1f"
+            }
+        ],
+        "extraActivities": [
+            {
+                "activity": "Club de Robotique",
+                "description": "Membre actif du club de robotique universitaire. Participation à des compétitions nationales et conception de robots autonomes.",
+                "_id": "67cb28bb20193a9ad81b6b20"
+            },
+            {
+                "activity": "Bénévolat - Les Restos du Cœur",
+                "description": "Distribution de repas et aide à l'organisation d'événements de collecte. Contribution hebdomadaire de 4 heures pendant 2 ans.",
+                "_id": "67cb28bb20193a9ad81b6b21"
+            },
+            {
+                "activity": "Association Sportive - Basketball",
+                "description": "Capitaine de l'équipe universitaire de basketball. Organisation d'entraînements et participation à des tournois régionaux.",
+                "_id": "67cb28bb20193a9ad81b6b22"
+            }
+        ],
+        "internationalExposure": [],
+        "applicationDate": "2025-03-07T17:11:23.559Z",
+        "Marks": [],
+        "payment": [],
+        "createdAt": "2025-03-07T17:11:23.567Z",
+        "updatedAt": "2025-03-07T17:11:23.567Z",
+        "__v": 0
+    }
+]

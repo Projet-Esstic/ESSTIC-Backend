@@ -32,24 +32,38 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = {
+    'profileImage': ['image/jpeg', 'image/png'],
     'transcript': ['application/pdf', 'image/jpeg', 'image/png'],
     'diploma': ['application/pdf', 'image/jpeg', 'image/png'],
     'cv': ['application/pdf'],
-    'profilePicture': ['image/jpeg', 'image/png'],
-    'receipt': ['application/pdf', 'image/jpeg', 'image/png'] // ➕ Added receipt support
+    'receipt': ['application/pdf', 'image/jpeg', 'image/png']
   };
-  const documentType = file.fieldname.split('_')[0];
+
+  // Debug logs
+  console.log('File details:', {
+    fieldname: file.fieldname,
+    originalname: file.originalname,
+    mimetype: file.mimetype
+  });
+
+  // Use the fieldname directly without splitting
+  const documentType = file.fieldname;
 
   console.log(`Validating file: ${file.originalname} as type: ${documentType}`);
+  console.log('Allowed types:', allowedTypes);
+  console.log('Document type exists:', !!allowedTypes[documentType]);
 
   if (!allowedTypes[documentType]) {
-    return cb(new Error('Invalid document type'));
+    console.error(`Invalid document type: ${documentType}`);
+    return cb(new Error(`Invalid document type: ${documentType}`));
   }
 
   if (allowedTypes[documentType].includes(file.mimetype)) {
+    console.log(`File type ${file.mimetype} is allowed for ${documentType}`);
     return cb(null, true);
   }
 
+  console.error(`Invalid file type ${file.mimetype} for ${documentType}`);
   cb(new Error(`Invalid file type for ${documentType}. Allowed types: ${allowedTypes[documentType].join(', ')}`));
 };
 
@@ -174,11 +188,11 @@ async function processUploadedFiles(files, userId) {
 
 const uploadCandidateDocuments = () => {
   const fields = [
-    { name: 'profilePicture', maxCount: 1 },
+    { name: 'profileImage', maxCount: 1 },
     { name: 'transcript', maxCount: 1 },
     { name: 'diploma', maxCount: 1 },
     { name: 'cv', maxCount: 1 },
-    { name: 'receipt', maxCount: 1 } // ➕ Added this line
+    { name: 'receipt', maxCount: 1 }
   ];
 
   return async (req, res, next) => {

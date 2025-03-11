@@ -31,23 +31,27 @@ class CandidateController extends BaseController {
     
     async registerForExam(req, res) {
         let session = null;
+        let parsedFormData = null;
+
         try {
-            // Start a MongoDB session
+            console.log('Request body:', req.body);
+            console.log('Processed files:', req.processedFiles);
+            
             session = await mongoose.startSession();
-            session.startTransaction(); // Begin the transaction
-    
-            const formData = JSON.parse(req.body.formData);
+            session.startTransaction();
+
+            parsedFormData = JSON.parse(req.body.formData);
+            console.log('Parsed payment data:', parsedFormData.payment);
+
             const {
                 email, password, firstName, lastName, dateOfBirth, gender,
                 phoneNumber, address, emergencyContact, examId,
-                highSchool,
-                university,
-                professionalExperience,
-                extraActivities,
-                internationalExposure,
-                fieldOfStudy
-            } = formData;
-    
+                highSchool, university, professionalExperience,
+                extraActivities, internationalExposure, fieldOfStudy,
+                payment
+            } = parsedFormData;
+
+            // Create new user
             const newUser = new User({
                 email,
                 password,
@@ -60,33 +64,34 @@ class CandidateController extends BaseController {
                 address,
                 emergencyContact
             });
-    
+
             console.log('Creating new user:', newUser);
             const savedUser = await newUser.save({ session });
-    
+
+            // Handle processed files
             const documents = {};
-            if (req.files) {
-                const documentTypes = ['profileImage', 'transcript', 'diploma', 'cv', 'other'];
-                for (const type of documentTypes) {
-                    if (req.files[type] && req.files[type][0]) {
-                        const file = req.files[type][0];
-                        documents[type] = {
-                            path: file.path,
-                            originalName: file.originalname,
-                            mimeType: file.mimetype,
-                            size: file.size,
-                            uploadedAt: new Date()
-                        };
-                    }
+            if (req.processedFiles && req.processedFiles.length > 0) {
+                for (const file of req.processedFiles) {
+                    documents[file.documentType] = {
+                        path: file.path,
+                        originalName: file.originalName,
+                        mimeType: file.mimeType,
+                        size: file.size,
+                        uploadedAt: file.uploadedAt,
+                        thumbnailPath: file.thumbnailPath
+                    };
                 }
             }
-    
-            if (documents.profileImage) {
-                savedUser.profilePicture = documents.profileImage.path;
-                await savedUser.save({ session });
+
+            // Parse and validate the payment date
+            const paymentDate = payment.paymentDate ? new Date(payment.paymentDate) : null;
+            console.log('Parsed payment date:', paymentDate);
+
+            if (!paymentDate || isNaN(paymentDate.getTime())) {
+                throw new Error(`Invalid payment date: ${payment.paymentDate}`);
             }
-    
-            // Create a new candidate
+
+            // Create candidate data with payment information
             const candidateData = {
                 user: savedUser._id,
                 documents,
@@ -94,47 +99,62 @@ class CandidateController extends BaseController {
                 university: university || {},
                 professionalExperience: professionalExperience || [],
                 extraActivities: extraActivities || [],
-                internationalExposure: internationalExposure || []
+                internationalExposure: internationalExposure || [],
+                payment: [{
+                    amountPaid: payment.amount,
+                    paidDate: paymentDate.toISOString(), // Convert to ISO string
+                    paymentMethod: payment.paymentMethod,
+                    phoneNumber: payment.phoneNumber,
+                    provider: payment.provider,
+                    ...(payment.paymentMethod === 'bank' && documents.receipt && {
+                        receiptPath: documents.receipt.path,
+                        receiptThumbnail: documents.receipt.thumbnailPath
+                    })
+                }]
             };
-    
-            // Validate examId
+
+            // Validate and add examId
             if (examId && mongoose.Types.ObjectId.isValid(examId)) {
                 candidateData.selectedEntranceExam = new mongoose.Types.ObjectId(examId);
             } else {
                 throw new Error('Invalid examId format');
             }
-    
-            // Validate fieldOfStudy
+
+            // Validate and add fieldOfStudy
             if (fieldOfStudy && mongoose.Types.ObjectId.isValid(fieldOfStudy)) {
                 candidateData.fieldOfStudy = new mongoose.Types.ObjectId(fieldOfStudy);
             } else {
                 throw new Error('A valid fieldOfStudy ID is required');
             }
-    
-            console.log("Exam ID:", candidateData.selectedEntranceExam);
-            console.log("Field of Study ID:", candidateData.fieldOfStudy);
-    
+
+            console.log("Creating candidate with data:", {
+                examId: candidateData.selectedEntranceExam,
+                fieldOfStudy: candidateData.fieldOfStudy,
+                payment: candidateData.payment,
+                paymentDate: candidateData.payment[0].paidDate // Log the date
+            });
+
             const newCandidate = new Candidate(candidateData);
             const savedCandidate = await newCandidate.save({ session });
-    
+
             await session.commitTransaction();
             session.endSession();
-    
+
             const token = jwt.sign(
                 { userId: savedUser._id, roles: savedUser.roles },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
-    
+
             res.status(201).json({
                 message: "Registration successful",
                 token,
                 user: savedUser,
-                candidate: newCandidate
+                candidate: savedCandidate
             });
         } catch (error) {
             console.error('Registration error:', error);
-    
+
             if (session) {
                 try {
                     await session.abortTransaction();
@@ -142,8 +162,23 @@ class CandidateController extends BaseController {
                     console.error('Error aborting transaction:', abortError);
                 }
             }
-    
-            res.status(500).json({ message: error.message || 'Internal server error' });
+
+            // Send more specific error messages
+            if (error.name === 'ValidationError') {
+                res.status(400).json({ 
+                    message: 'Validation Error', 
+                    errors: Object.values(error.errors).map(err => err.message)
+                });
+            } else if (error.code === 11000) {
+                res.status(400).json({ 
+                    message: 'Email already exists',
+                    field: Object.keys(error.keyPattern)[0]
+                });
+            } else {
+                res.status(500).json({ 
+                    message: error.message || 'Internal server error'
+                });
+            }
         } finally {
             if (session) {
                 session.endSession();

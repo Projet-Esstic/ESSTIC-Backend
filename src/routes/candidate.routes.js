@@ -10,7 +10,10 @@ const router = express.Router();
 
 // Route for submitting documents, protected for authenticated users
 router.post('/submit-documents', authenticate, uploadCandidateDocuments(), candidateController.submitDocuments);
-router.post('/register', /*uploadDocuments,*/ candidateController.registerForExam);
+router.post('/register', 
+    uploadCandidateDocuments(),
+    candidateController.registerForExam
+);
 
 // Route for submitting documents, protected for authenticated users
 router.post('/submit-documents', authenticate, /*uploadDocuments,*/ candidateController.submitDocuments);
