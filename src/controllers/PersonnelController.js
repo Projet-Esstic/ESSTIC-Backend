@@ -263,8 +263,8 @@ class PersonnelController extends BaseController {
                 personnelUpdateData.department = updateData.department;
             }
 
-            if (updateData.position) {
-                personnelUpdateData.position = updateData.position;
+            if (updateData.employmentStatus) {
+                personnelUpdateData.employmentStatus = updateData.employmentStatus;
             }
 
             // Additional fields as necessary
