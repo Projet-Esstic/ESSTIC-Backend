@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import {Jimp} from 'jimp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -36,10 +37,10 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = {
-    'profileImage': ['image/jpeg', 'image/png'],
+    'profileImage': ['image/jpeg', 'image/png', 'image/gif'],
     'transcript': ['application/pdf', 'image/jpeg', 'image/png'],
     'diploma': ['application/pdf', 'image/jpeg', 'image/png'],
-    'cv': ['application/pdf'],
+    'cv': ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     'receipt': ['application/pdf', 'image/jpeg', 'image/png']
   };
 
@@ -85,6 +86,15 @@ async function createThumbnail(filePath, documentType) {
     return null;
   }
 
+  // Check if the file is an image based on its extension
+  const fileExt = path.extname(filePath).toLowerCase();
+  const isImage = ['.jpg', '.jpeg', '.png', '.gif'].includes(fileExt);
+  
+  if (!isImage) {
+    console.log(`Skipping thumbnail creation for non-image file: ${filePath}`);
+    return null;
+  }
+
   const thumbnailDir = path.join(path.dirname(filePath), 'thumbnails');
   await fs.mkdir(thumbnailDir, { recursive: true });
 
@@ -93,12 +103,43 @@ async function createThumbnail(filePath, documentType) {
     'thumb-' + path.basename(filePath)
   );
 
-  await sharp(filePath)
-    .resize(200, 200, {
-      fit: 'inside',
-      withoutEnlargement: true
-    })
-    .toFile(thumbnailPath);
+  try {
+    await sharp(filePath)
+      .resize(200, 200, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .toFile(thumbnailPath);
+  } catch (error) {
+    console.error(`Error creating thumbnail for ${filePath}:`, error);
+    throw new Error(`Failed to process image: ${error.message}`);
+  }
+
+  return thumbnailPath;
+}
+
+async function createThumbnailWithJimp(filePath, documentType) {
+  if (!['profileImage', 'transcript', 'diploma', 'receipt'].includes(documentType)) {
+    return null;
+  }
+
+  const thumbnailDir = path.join(path.dirname(filePath), 'thumbnails');
+  await fs.mkdir(thumbnailDir, { recursive: true });
+
+  const thumbnailPath = path.join(
+    thumbnailDir,
+    'thumb-' + path.basename(filePath)
+  );
+
+  try {
+    const image = await Jimp.read(filePath);
+    await image
+      .resize(200, Jimp.AUTO) // Maintain aspect ratio
+      .writeAsync(thumbnailPath);
+  } catch (error) {
+    console.error(`Error creating thumbnail with Jimp for ${filePath}:`, error);
+    throw new Error(`Failed to process image with Jimp: ${error.message}`);
+  }
 
   return thumbnailPath;
 }
@@ -183,10 +224,16 @@ const uploadCandidateDocuments = () => {
         next();
       } catch (error) {
         console.error('Error after upload:', error);
+
+        // Log more details about the file causing the error
+        if (error.message.includes('unsupported image format')) {
+          console.error('Unsupported image format detected. File details:', req.files);
+        }
+
         await cleanupFiles(
           Object.values(req.files).flat().map(file => ({ path: file.path }))
         );
-        next(error);
+        res.status(400).json({ status: 'error', message: 'Unsupported image format or processing error' });
       }
     });
   };
