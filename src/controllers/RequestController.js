@@ -1,7 +1,7 @@
-import Request from '../models/request'
+import Request from '../models/request.js'
 
 // Create a new request
-exports.createRequest = async (req, res) => {
+export const createRequest = async (req, res) => {
   try {
     const { title, description, date, type, documentType, leaveType, startDate, endDate, course, examType, userId } = req.body;
 
@@ -27,7 +27,7 @@ exports.createRequest = async (req, res) => {
 };
 
 // Get all requests, optionally filtered by userId
-exports.getAllRequests = async (req, res) => {
+export const getAllRequests = async (req, res) => {
   try {
     const { userId } = req.query;
     const filter = userId ? { userId } : {};
@@ -39,7 +39,7 @@ exports.getAllRequests = async (req, res) => {
 };
 
 // Get a single request by ID
-exports.getRequestById = async (req, res) => {
+export const getRequestById = async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
     if (!request) {
@@ -52,7 +52,7 @@ exports.getRequestById = async (req, res) => {
 };
 
 // Update a request by ID
-exports.updateRequest = async (req, res) => {
+export const updateRequest = async (req, res) => {
   try {
     const updatedRequest = await Request.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!updatedRequest) {
@@ -65,7 +65,7 @@ exports.updateRequest = async (req, res) => {
 };
 
 // Delete a request by ID
-exports.deleteRequest = async (req, res) => {
+export const deleteRequest = async (req, res) => {
   try {
     const deletedRequest = await Request.findByIdAndDelete(req.params.id);
     if (!deletedRequest) {

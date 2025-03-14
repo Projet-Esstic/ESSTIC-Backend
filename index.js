@@ -16,6 +16,8 @@ import authRoutes from "./src/routes/auth.routes.js";
 import personnelRoutes from "./src/routes/personnel.routes.js";
 import settingRoutes from "./src/routes/settings.routes.js";
 import "express-async-errors";
+import requestRoutes from "./src/routes/request.routes.js";
+
 
 // Create Express app
 const app = express();
@@ -73,7 +75,7 @@ app.use("/api/entranceExams", entranceExamRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/personnel", personnelRoutes);
 app.use("/api/settings", settingRoutes);
-
+app.use("/api/requests", requestRoutes);
 // Middleware for handling not found routes
 app.use(notFound);
 

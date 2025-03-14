@@ -1,11 +1,11 @@
 import express from 'express';
-import router from express.Router();
-import RequestController from '../controllers/RequestController';
+const router = express.Router();
+import { createRequest, getAllRequests, getRequestById, updateRequest, deleteRequest } from '../controllers/RequestController.js';
 
-router.post('/requests', RequestController.createRequest);
-router.get('/requests', RequestController.getAllRequests);
-router.get('/requests/:id', RequestController.getRequestById);
-router.put('/requests/:id', RequestController.updateRequest);
-router.delete('/requests/:id', RequestController.deleteRequest);
+router.post('/requests', createRequest);
+router.get('/requests', getAllRequests);
+router.get('/requests/:id', getRequestById);
+router.put('/requests/:id', updateRequest);
+router.delete('/requests/:id', deleteRequest);
 
-module.exports = router; 
+export default router; 
