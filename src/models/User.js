@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default-profile.png'
   },
+  region: {
+    type: String,
+    required: true,
+  },
 
   // Contact details.
   address: {

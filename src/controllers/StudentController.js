@@ -130,40 +130,58 @@ export const registerStudent = async (req, res) => {
 
                 if (!academicInfoValid) continue;
 
-                // Create and save the new student
-                console.log('Creating new student with data:', {
-                    user,
-                    candidate,
-                    academicInfo: defaultedAcademicInfo
-                });
+                // Start a session for the transaction
+                const session = await mongoose.startSession();
+                session.startTransaction();
 
-                const newStudent = new Student({
-                    user,
-                    candidate,
-                    academicInfo: defaultedAcademicInfo
-                });
+                try {
+                    // Create and save the new student within the transaction
+                    const newStudent = new Student({
+                        user,
+                        candidate,
+                        academicInfo: defaultedAcademicInfo
+                    });
 
-                const savedStudent = await newStudent.save();
-                console.log('Saved student:', savedStudent);
-                
-                // Queue email sending
-                const emailPromise = sendStudentRegistrationEmail(
-                    existingUser.email,
-                    `${existingUser.firstName} ${existingUser.lastName}`,
-                    defaultedAcademicInfo.level,
-                    defaultedAcademicInfo.department
-                ).catch(error => {
-                    console.error('Email sending failed for user:', existingUser.email, error);
-                    return null; // Don't let email failure stop the process
-                });
+                    const savedStudent = await newStudent.save({ session });
+                    
+                    // Update candidate status to passed within the same transaction
+                    await Candidate.findByIdAndUpdate(
+                        candidate, 
+                        { applicationStatus: 'passed' },
+                        { session }
+                    );
 
-                emailPromises.push(emailPromise);
+                    // Commit the transaction
+                    await session.commitTransaction();
+                    console.log('Saved student:', savedStudent);
 
-                results.push({
-                    user,
-                    message: 'Student registered successfully.',
-                    student: savedStudent
-                });
+                    // Queue email sending after successful transaction
+                    const emailPromise = sendStudentRegistrationEmail(
+                        existingUser.email,
+                        `${existingUser.firstName} ${existingUser.lastName}`,
+                        defaultedAcademicInfo.level,
+                        defaultedAcademicInfo.department
+                    ).catch(error => {
+                        console.error('Email sending failed for user:', existingUser.email, error);
+                        return null;
+                    });
+
+                    emailPromises.push(emailPromise);
+
+                    results.push({
+                        user,
+                        message: 'Student registered successfully.',
+                        student: savedStudent
+                    });
+
+                } catch (transactionError) {
+                    // If anything fails, abort the transaction
+                    await session.abortTransaction();
+                    throw transactionError;
+                } finally {
+                    // End the session
+                    session.endSession();
+                }
 
             } catch (registrationError) {
                 console.error('Error in registration:', registrationError);
@@ -180,7 +198,7 @@ export const registerStudent = async (req, res) => {
         console.log('Final results:', results);
         console.log('Errors:', errors);
 
-        return res.status(207).json({
+        return res.status(200).json({
             message: 'Student registration process completed',
             successful: results,
             failed: errors

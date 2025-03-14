@@ -48,7 +48,7 @@ class CandidateController extends BaseController {
                 phoneNumber, address, emergencyContact, examId,
                 highSchool, university, professionalExperience,
                 extraActivities, internationalExposure, fieldOfStudy,
-                payment
+                payment,state
             } = parsedFormData;
 
             // Create new user
@@ -62,6 +62,7 @@ class CandidateController extends BaseController {
                 gender,
                 phoneNumber,
                 address,
+                region: address.state,
                 emergencyContact
             });
 
