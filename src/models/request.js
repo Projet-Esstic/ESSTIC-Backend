@@ -46,5 +46,4 @@ requestSchema.pre('save', function (next) {
 });
 
 const Request = mongoose.model('Request', requestSchema);
-
-module.exports = Request; 
+export default Request; 
