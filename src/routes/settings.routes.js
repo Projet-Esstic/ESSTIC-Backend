@@ -15,6 +15,7 @@ router.get("/roles", SettingsController.getAllRoles);
 router.get("/roles/active", SettingsController.getActiveRoles);
 router.post("/roles", SettingsController.createOrUpdateRole);
 router.delete("/roles", SettingsController.deleteRole);
+router.put("/roles/update-status", SettingsController.updateRoleStatus);
 
 router.get("/roles/permissions", getPermissionsFromRoles,(req, res) => {
     res.status(200).json({ permissions: req.permissions });

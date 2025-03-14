@@ -165,10 +165,39 @@ class SettingsController {
             res.status(500).json({ message: "Server error." });
         }
     }
+    async updateRoleStatus(req, res) {
+        const { name, status } = req.body;
+        console.log(req.body);
 
+        try {
+            const settings = await Settings.findOne();
+            if (!settings) {
+                return res.status(404).json({ message: "Settings not found" });
+            }
+
+            // Find the permission by name
+            const role = settings.roles.find(role => role.name === name);
+
+            if (!role) {
+                return res.status(400).json({ message: `Role ${name} not found` });
+            }
+
+            // Update status
+            role.status = status;
+
+            // Save the updated settings
+            await settings.save();
+
+            return res.status(200).json({ message: `Role ${name} status updated successfully` });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
     // Delete a role
     async deleteRole(req, res) {
         const { name } = req.body;
+        console.log(req.body);
         try {
             const settings = await Settings.findOne();
             if (!settings) return res.status(404).json({ message: "Settings not found" });

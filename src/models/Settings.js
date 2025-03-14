@@ -11,7 +11,8 @@ const RoleSchema = new Schema([{
     permissions: [
         {
             name: { type: String, required: true },
-            pages: [{ type: String }]
+            pages: [{ type: String, _id: false }],
+             _id: false
         }
     ],
     status: { type: Boolean, default: true } // Active or not
