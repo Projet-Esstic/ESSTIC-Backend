@@ -6,6 +6,10 @@ import studentController, { studentBrief, registerStudent } from '../controllers
 
 const router = express.Router();
 
+router.get('/', 
+    // authenticate, authorizeRoles(['admin']),
+    studentController.getAllStudents);
+
 // Routes for Student operations
 router.get('/:id', authenticate, studentController.getStudentDetails);
 

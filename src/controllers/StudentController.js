@@ -285,8 +285,28 @@ export const studentBrief = async (req, res) => {
 class StudentController extends BaseController {
     constructor() {
         super(Student);
+        this.getAllStudents = this.getAllStudents.bind(this);
+
+    }
+      
+    handleError(error, context) {
+        console.error(`❌ Error during ${context}:`, error);
+        return {
+            status: 'error',
+            message: `Error during ${context}`,
+            details: error.message || error,
+        };
     }
 
+    async getAllStudents(req, res, next) {
+        try {
+            const students = await Student.find().populate('user');
+            res.json(students);
+        } catch (error) {
+            next(this.handleError(error, 'fetching all candidates'));
+        }
+    }
+    
     async getStudentDetails(req, res, next) {
         try {
             const student = await Student.findById(req.params.id)
