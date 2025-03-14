@@ -108,7 +108,7 @@ const candidateSchema = new Schema({
         },
         paymentMethod: {
             type: String,
-            enum: ['bank', 'Mobile'],
+            enum: ['bank', 'mobile'],
             required: true
         },
         validatedBy: {

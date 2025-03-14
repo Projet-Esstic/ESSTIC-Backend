@@ -13,7 +13,11 @@ import semesterRoutes from "./src/routes/semester.routes.js";
 import studentRoutes from "./src/routes/student.routes.js";
 import entranceExamRoutes from "./src/routes/entranceExam.routes.js";
 import authRoutes from "./src/routes/auth.routes.js";
+import personnelRoutes from "./src/routes/personnel.routes.js";
+import settingRoutes from "./src/routes/settings.routes.js";
 import "express-async-errors";
+import requestRoutes from "./src/routes/request.routes.js";
+
 
 // Create Express app
 const app = express();
@@ -24,6 +28,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:8080",
+      "http://localhost:8081",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -38,6 +43,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:8080",
+      "http://localhost:8081",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -67,7 +73,9 @@ app.use("/api/semesters", semesterRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/entranceExams", entranceExamRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/personnel", personnelRoutes);
+app.use("/api/settings", settingRoutes);
+app.use("/api/requests", requestRoutes);
 // Middleware for handling not found routes
 app.use(notFound);
 

@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default-profile.png'
   },
+  region: {
+    type: String,
+    required: true,
+  },
 
   // Contact details.
   address: {
@@ -136,17 +140,22 @@ userSchema.virtual('fullName').get(function () {
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      next();
   } catch (error) {
-    next(error);
+      next(error);
   }
 });
 
 // Instance method to securely compare passwords.
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+    console.log('Comparing passwords...');
+    console.log('Stored Password:', this.password);
+    console.log('Provided Password:', candidatePassword);
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    console.log('Password Match:', isMatch);
+    return isMatch;
 };
 
 // Virtual to check if the account is locked.

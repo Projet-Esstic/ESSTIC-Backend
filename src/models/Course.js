@@ -46,6 +46,7 @@ const courseSchema = new mongoose.Schema({
     instructors: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+        
     }],
     // Department structure changes based on isEntranceExam
     department: {

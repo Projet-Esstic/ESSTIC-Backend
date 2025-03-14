@@ -5,51 +5,70 @@ import sharp from 'sharp';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import {Jimp} from 'jimp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 console.log('Initializing multer setup...');
 
+// Define storage configuration with relative paths
 const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: async function (req, file, cb) {
+    // Create relative paths from project root
+    const baseDir = './uploads';
+    const userDir = path.join(baseDir, req.body.user?.id || 'temp');
+    const documentType = file.fieldname;
+    const finalPath = path.join(userDir, documentType);
+
     try {
-      const tempDir = path.join(__dirname, '../../uploads/temp');
-      console.log(`Creating temp directory at ${tempDir}`);
-      await fs.mkdir(tempDir, { recursive: true });
-      cb(null, tempDir);
-    } catch (err) {
-      console.error('Error creating temp directory:', err);
-      cb(err);
+      // Create directories if they don't exist
+      await fs.mkdir(finalPath, { recursive: true });
+      cb(null, finalPath);
+    } catch (error) {
+      cb(error);
     }
   },
-  filename: (req, file, cb) => {
-    const timestampedFilename = `${Date.now()}-${file.originalname}`;
-    console.log(`Saving file as ${timestampedFilename}`);
-    cb(null, timestampedFilename);
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = {
+    'profileImage': ['image/jpeg', 'image/png', 'image/gif'],
     'transcript': ['application/pdf', 'image/jpeg', 'image/png'],
     'diploma': ['application/pdf', 'image/jpeg', 'image/png'],
-    'cv': ['application/pdf'],
-    'profilePicture': ['image/jpeg', 'image/png'],
-    'receipt': ['application/pdf', 'image/jpeg', 'image/png'] // ➕ Added receipt support
+    'cv': ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    'receipt': ['application/pdf', 'image/jpeg', 'image/png']
   };
-  const documentType = file.fieldname.split('_')[0];
+
+  // Debug logs
+  console.log('File details:', {
+    fieldname: file.fieldname,
+    originalname: file.originalname,
+    mimetype: file.mimetype
+  });
+
+  // Use the fieldname directly without splitting
+  const documentType = file.fieldname;
 
   console.log(`Validating file: ${file.originalname} as type: ${documentType}`);
+  console.log('Allowed types:', allowedTypes);
+  console.log('Document type exists:', !!allowedTypes[documentType]);
 
   if (!allowedTypes[documentType]) {
-    return cb(new Error('Invalid document type'));
+    console.error(`Invalid document type: ${documentType}`);
+    return cb(new Error(`Invalid document type: ${documentType}`));
   }
 
   if (allowedTypes[documentType].includes(file.mimetype)) {
+    console.log(`File type ${file.mimetype} is allowed for ${documentType}`);
     return cb(null, true);
   }
 
+  console.error(`Invalid file type ${file.mimetype} for ${documentType}`);
   cb(new Error(`Invalid file type for ${documentType}. Allowed types: ${allowedTypes[documentType].join(', ')}`));
 };
 
@@ -57,49 +76,72 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
+// Create thumbnail with relative path
 async function createThumbnail(filePath, documentType) {
-  const fileExt = path.extname(filePath).toLowerCase();
-  const baseName = path.basename(filePath, fileExt);
-  const outputDir = path.dirname(filePath);
-  const thumbnailPath = path.join(outputDir, `${baseName}-thumbnail.png`);
-
-  try {
-    console.log(`Creating thumbnail for ${filePath}`);
-    if (fileExt === '.pdf') {
-      const command = `pdftoppm -png -f 1 -singlefile "${filePath}" "${path.join(outputDir, baseName)}-thumbnail"`;
-      console.log(`Executing command: ${command}`);
-      await new Promise((resolve, reject) => {
-        exec(command, (error) => {
-          if (error) {
-            console.error(`pdftoppm error:`, error);
-            return reject(error);
-          }
-          resolve();
-        });
-      });
-    } else {
-      const dimensions = {
-        profilePicture: { width: 150, height: 150 },
-        transcript: { width: 300, height: 400 },
-        diploma: { width: 300, height: 400 },
-        cv: { width: 300, height: 400 },
-        receipt: { width: 300, height: 400 } // ➕ Added receipt dimensions
-      };
-      const { width, height } = dimensions[documentType] || dimensions.transcript;
-      console.log(`Resizing image to ${width}x${height}`);
-      await sharp(filePath)
-        .resize(width, height)
-        .toFile(thumbnailPath);
-    }
-    return path.basename(thumbnailPath);
-  } catch (error) {
-    console.error('Thumbnail creation error:', error);
+  if (!['profileImage', 'transcript', 'diploma', 'receipt'].includes(documentType)) {
     return null;
   }
+
+  // Check if the file is an image based on its extension
+  const fileExt = path.extname(filePath).toLowerCase();
+  const isImage = ['.jpg', '.jpeg', '.png', '.gif'].includes(fileExt);
+  
+  if (!isImage) {
+    console.log(`Skipping thumbnail creation for non-image file: ${filePath}`);
+    return null;
+  }
+
+  const thumbnailDir = path.join(path.dirname(filePath), 'thumbnails');
+  await fs.mkdir(thumbnailDir, { recursive: true });
+
+  const thumbnailPath = path.join(
+    thumbnailDir,
+    'thumb-' + path.basename(filePath)
+  );
+
+  try {
+    await sharp(filePath)
+      .resize(200, 200, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .toFile(thumbnailPath);
+  } catch (error) {
+    console.error(`Error creating thumbnail for ${filePath}:`, error);
+    throw new Error(`Failed to process image: ${error.message}`);
+  }
+
+  return thumbnailPath;
+}
+
+async function createThumbnailWithJimp(filePath, documentType) {
+  if (!['profileImage', 'transcript', 'diploma', 'receipt'].includes(documentType)) {
+    return null;
+  }
+
+  const thumbnailDir = path.join(path.dirname(filePath), 'thumbnails');
+  await fs.mkdir(thumbnailDir, { recursive: true });
+
+  const thumbnailPath = path.join(
+    thumbnailDir,
+    'thumb-' + path.basename(filePath)
+  );
+
+  try {
+    const image = await Jimp.read(filePath);
+    await image
+      .resize(200, Jimp.AUTO) // Maintain aspect ratio
+      .writeAsync(thumbnailPath);
+  } catch (error) {
+    console.error(`Error creating thumbnail with Jimp for ${filePath}:`, error);
+    throw new Error(`Failed to process image with Jimp: ${error.message}`);
+  }
+
+  return thumbnailPath;
 }
 
 async function moveFile(tempPath, finalPath) {
@@ -109,76 +151,57 @@ async function moveFile(tempPath, finalPath) {
   return finalPath;
 }
 
+// Process uploaded files with relative paths
+async function processUploadedFiles(files, userId) {
+  const processedFiles = [];
+
+  for (const [documentType, fileArray] of Object.entries(files)) {
+    for (const file of fileArray) {
+      const thumbnailPath = await createThumbnail(file.path, documentType);
+      
+      processedFiles.push({
+        documentType,
+        path: path.relative('.', file.path), // Convert to relative path
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedAt: new Date(),
+        thumbnailPath: thumbnailPath ? path.relative('.', thumbnailPath) : null // Convert to relative path
+      });
+    }
+  }
+
+  return processedFiles;
+}
+
+// Cleanup files using relative paths
 async function cleanupFiles(files) {
   for (const file of files) {
     try {
       if (file.path) {
-        console.log(`Deleting temp file: ${file.path}`);
         await fs.unlink(file.path);
-      }
-      if (file.thumbnailPath) {
-        console.log(`Deleting temp thumbnail: ${file.thumbnailPath}`);
-        await fs.unlink(file.thumbnailPath);
+        
+        // Try to remove thumbnail if it exists
+        const thumbnailPath = path.join(
+          path.dirname(file.path),
+          'thumbnails',
+          'thumb-' + path.basename(file.path)
+        );
+        await fs.unlink(thumbnailPath).catch(() => {}); // Ignore if thumbnail doesn't exist
       }
     } catch (error) {
-      console.error('Cleanup error:', error);
+      console.error(`Error cleaning up file ${file.path}:`, error);
     }
-  }
-}
-
-async function processUploadedFiles(files, userId) {
-  const processedFiles = [];
-  const filesToCleanup = [];
-
-  console.log('Processing uploaded files...');
-  try {
-    for (const [fieldname, fileArray] of Object.entries(files)) {
-      for (const file of fileArray) {
-        const documentType = fieldname.split('_')[0];
-        const finalDir = path.join(__dirname, `../../uploads/${userId}/${documentType}s`);
-        console.log(`Processing file: ${file.originalname} for ${documentType}`);
-
-        const thumbnailFilename = await createThumbnail(file.path, documentType);
-        const thumbnailPath = thumbnailFilename
-          ? path.join(path.dirname(file.path), thumbnailFilename)
-          : null;
-
-        const finalPath = await moveFile(file.path, path.join(finalDir, file.filename));
-        const finalThumbnailPath = thumbnailPath
-          ? await moveFile(thumbnailPath, path.join(finalDir, 'thumbnails', thumbnailFilename))
-          : null;
-
-        processedFiles.push({
-          documentType,
-          originalName: file.originalname,
-          filename: file.filename,
-          path: finalPath,
-          thumbnailPath: finalThumbnailPath,
-          mimeType: file.mimetype,
-          size: file.size,
-          uploadedAt: new Date()
-        });
-
-        filesToCleanup.push({ path: file.path, thumbnailPath });
-      }
-    }
-
-    console.log('Finished processing files.');
-    return processedFiles;
-  } catch (error) {
-    console.error('Error processing files:', error);
-    await cleanupFiles(filesToCleanup);
-    throw error;
   }
 }
 
 const uploadCandidateDocuments = () => {
   const fields = [
-    { name: 'profilePicture', maxCount: 1 },
+    { name: 'profileImage', maxCount: 1 },
     { name: 'transcript', maxCount: 1 },
     { name: 'diploma', maxCount: 1 },
     { name: 'cv', maxCount: 1 },
-    { name: 'receipt', maxCount: 1 } // ➕ Added this line
+    { name: 'receipt', maxCount: 1 }
   ];
 
   return async (req, res, next) => {
@@ -201,10 +224,16 @@ const uploadCandidateDocuments = () => {
         next();
       } catch (error) {
         console.error('Error after upload:', error);
+
+        // Log more details about the file causing the error
+        if (error.message.includes('unsupported image format')) {
+          console.error('Unsupported image format detected. File details:', req.files);
+        }
+
         await cleanupFiles(
           Object.values(req.files).flat().map(file => ({ path: file.path }))
         );
-        next(error);
+        res.status(400).json({ status: 'error', message: 'Unsupported image format or processing error' });
       }
     });
   };

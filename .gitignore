@@ -73,7 +73,7 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
+
 .env.development.local
 .env.test.local
 .env.production.local
@@ -129,8 +129,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-<<<<<<< HEAD
-data_test.json
-=======
+data_test*.json
 .idea
->>>>>>> a1fab2b (finish the grading system and the behavior system)

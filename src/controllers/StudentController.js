@@ -1,130 +1,224 @@
 import BaseController from './BaseController.js';
 import Student from '../models/Student.js';
 import User from '../models/User.js';
+import Candidate from '../models/Candidate.js';
 import createError from 'http-errors';
-
-export const addStudent = async (req, res) => {
-    try {
-        const {
-            user,
-            applicant,
-            academicInfo
-        } = req.body;
-
-        // Validate required fields
-        if (!user || !applicant || !academicInfo) {
-            return res.status(400).json({ message: 'Missing required fields: user, applicant, or academicInfo.' });
-        }
-
-        // Check if the user exists
-        const existingUser = await User.findById(user);
-        if (!existingUser) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Check if the applicant exists
-        const existingApplicant = await Candidate.findById(applicant);
-        if (!existingApplicant) {
-            return res.status(404).json({ message: 'Applicant not found.' });
-        }
-
-        // Check if the student already exists for the given user or applicant
-        const existingStudentByUser = await Student.findOne({ user });
-        if (existingStudentByUser) {
-            return res.status(400).json({ message: 'A student record already exists for this user.' });
-        }
-
-        const existingStudentByApplicant = await Student.findOne({ applicant });
-        if (existingStudentByApplicant) {
-            return res.status(400).json({ message: 'A student record already exists for this applicant.' });
-        }
-
-        // Validate academicInfo fields
-        if (!academicInfo.level || !academicInfo.department) {
-            return res.status(400).json({ message: 'Missing required academicInfo fields: level or department.' });
-        }
-
-        // Create the new student
-        const newStudent = new Student({
-            user,
-            applicant,
-            academicInfo
-        });
-
-        // Save the student to the database
-        await newStudent.save();
-
-        // Return the created student
-        return res.status(201).json({ message: 'Student created successfully.', student: newStudent });
-
-    } catch (error) {
-        console.error('Error in addStudent:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-};
+import mongoose from 'mongoose';
+import { sendStudentRegistrationEmail } from '../services/email.service.js';
 
 export const registerStudent = async (req, res) => {
     try {
-        const {
-            user,
-            applicant,
-            academicInfo
-        } = req.body;
+        const studentRegistrations = Array.isArray(req.body) ? req.body : [req.body];
+        const results = [];
+        const errors = [];
+        const emailPromises = []; // Array to hold email promises
+        console.log('Processing registrations:', studentRegistrations);
 
-        // Validate required fields
-        if (!user || !applicant || !academicInfo) {
-            return res.status(400).json({ message: 'Missing required fields: user, applicant, or academicInfo.' });
+        for (const registration of studentRegistrations) {
+            try {
+                const { user, candidate, academicInfo } = registration;
+                console.log('Processing registration:', { user, candidate });
+                console.log('Academic Info:', academicInfo);
+
+                // Validate required fields
+                if (!user || !candidate || !academicInfo) {
+                    console.log('Missing required fields for:', { user, candidate });
+                    errors.push({ 
+                        user, 
+                        error: 'Missing required fields: user, candidate, or academicInfo.' 
+                    });
+                    continue;
+                }
+
+                // Check if the user exists
+                const existingUser = await User.findById(user);
+                console.log('Existing user:', existingUser);
+                if (!existingUser) {
+                    console.log('User not found:', user);
+                    errors.push({ user, error: 'User not found.' });
+                    continue;
+                }
+
+                // Check if the candidate exists
+                const existingCandidate = await Candidate.findById(candidate);
+                console.log('Existing candidate:', existingCandidate);
+                if (!existingCandidate) {
+                    console.log('Candidate not found:', candidate);
+                    errors.push({ user, error: 'Candidate not found.' });
+                    continue;
+                }
+
+                // Check for existing student records
+                const existingStudentByUser = await Student.findOne({ user });
+                if (existingStudentByUser) {
+                    errors.push({ user, error: 'A student record already exists for this user.' });
+                    continue;
+                }
+
+                const existingStudentByCandidate = await Student.findOne({ candidate });
+                if (existingStudentByCandidate) {
+                    errors.push({ user, error: 'A student record already exists for this candidate.' });
+                    continue;
+                }
+
+                // Validate academicInfo structure
+                const requiredAcademicFields = {
+                    level: ['level_1', 'level_2', 'level_3', 'masters_1', 'masters_2', 'phd'],
+                    department: mongoose.Types.ObjectId.isValid,
+                    academicYears: Array.isArray
+                };
+
+                let academicInfoValid = true;
+                for (const [field, validator] of Object.entries(requiredAcademicFields)) {
+                    if (!academicInfo[0][field]) {
+                        errors.push({ 
+                            user, 
+                            error: `Missing required academicInfo field: ${field}` 
+                        });
+                        academicInfoValid = false;
+                        break;
+                    }
+
+                    if (Array.isArray(validator)) {
+                        if (!validator.includes(academicInfo[0][field])) {
+                            errors.push({ 
+                                user, 
+                                error: `Invalid ${field}. Must be one of: ${validator.join(', ')}` 
+                            });
+                            academicInfoValid = false;
+                            break;
+                        }
+                    } else if (!validator(academicInfo[0][field])) {
+                        errors.push({ 
+                            user, 
+                            error: `Invalid ${field} format` 
+                        });
+                        academicInfoValid = false;
+                        break;
+                    }
+                }
+
+                if (!academicInfoValid) continue;
+
+                // Set default values for academic info
+                const defaultedAcademicInfo = {
+                    ...academicInfo[0],
+                    annualTotalPoints: 0,
+                    annualAverage: 0,
+                    annualRank: null,
+                    conduct: 0,
+                    annualCredits: 0,
+                    annualHourOfAbsences: 0,
+                    annualDiscipline: 'Good',
+                    finalDecision: 'Pending',
+                    courses: academicInfo[0].courses || []
+                };
+
+                // Validate academic years structure
+                if (academicInfo[0].academicYears) {
+                    for (const year of academicInfo[0].academicYears) {
+                        if (!year.year || !Array.isArray(year.semesters)) {
+                            errors.push({ 
+                                user, 
+                                error: 'Invalid academic year structure. Each year must have a year and semesters array.' 
+                            });
+                            academicInfoValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!academicInfoValid) continue;
+
+                // Start a session for the transaction
+                const session = await mongoose.startSession();
+                session.startTransaction();
+
+                try {
+                    // Create and save the new student within the transaction
+                    const newStudent = new Student({
+                        user,
+                        candidate,
+                        academicInfo: defaultedAcademicInfo
+                    });
+
+                    const savedStudent = await newStudent.save({ session });
+                    
+                    // Update candidate status to passed within the same transaction
+                    await Candidate.findByIdAndUpdate(
+                        candidate, 
+                        { applicationStatus: 'passed' },
+                        { session }
+                    );
+
+                    // Commit the transaction
+                    await session.commitTransaction();
+                    console.log('Saved student:', savedStudent);
+
+                    // Queue email sending after successful transaction
+                    const emailPromise = sendStudentRegistrationEmail(
+                        existingUser.email,
+                        `${existingUser.firstName} ${existingUser.lastName}`,
+                        defaultedAcademicInfo.level,
+                        defaultedAcademicInfo.department
+                    ).catch(error => {
+                        console.error('Email sending failed for user:', existingUser.email, error);
+                        return null;
+                    });
+
+                    emailPromises.push(emailPromise);
+
+                    results.push({
+                        user,
+                        message: 'Student registered successfully.',
+                        student: savedStudent
+                    });
+
+                } catch (transactionError) {
+                    // If anything fails, abort the transaction
+                    await session.abortTransaction();
+                    throw transactionError;
+                } finally {
+                    // End the session
+                    session.endSession();
+                }
+
+            } catch (registrationError) {
+                console.error('Error in registration:', registrationError);
+                errors.push({
+                    user: registration.user,
+                    error: registrationError.message
+                });
+            }
         }
 
-        // Check if the user exists
-        const existingUser = await User.findById(user);
-        if (!existingUser) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
+        // Wait for all emails to be sent
+        await Promise.allSettled(emailPromises);
 
-        // Check if the applicant (candidate) exists
-        const existingApplicant = await Candidate.findById(applicant);
-        if (!existingApplicant) {
-            return res.status(404).json({ message: 'Applicant (candidate) not found.' });
-        }
+        console.log('Final results:', results);
+        console.log('Errors:', errors);
 
-        // Check if the student already exists for the given user or applicant
-        const existingStudentByUser = await Student.findOne({ user });
-        if (existingStudentByUser) {
-            return res.status(400).json({ message: 'A student record already exists for this user.' });
-        }
-
-        const existingStudentByApplicant = await Student.findOne({ applicant });
-        if (existingStudentByApplicant) {
-            return res.status(400).json({ message: 'A student record already exists for this applicant.' });
-        }
-
-        // Validate academicInfo fields
-        if (!academicInfo.level || !academicInfo.department) {
-            return res.status(400).json({ message: 'Missing required academicInfo fields: level or department.' });
-        }
-
-        // Create the new student
-        const newStudent = new Student({
-            user,
-            applicant,
-            academicInfo
+        return res.status(200).json({
+            message: 'Student registration process completed',
+            successful: results,
+            failed: errors
         });
-
-        // Save the student to the database
-        await newStudent.save();
-
-        // Return the created student
-        return res.status(201).json({ message: 'Student registered successfully.', student: newStudent });
 
     } catch (error) {
         console.error('Error in registerStudent:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        return res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        });
     }
 };
 
 export const studentBrief = async (req, res) => {
     try {
+        /**
+         * I prefer to do like this because I assumes that other people thant the student will have access to this route
+         * like the teachers, the student's parent and the admin for example.
+         */
         const { id } = req.params;
         const { year } = req.body;
 
@@ -209,8 +303,28 @@ export const studentBrief = async (req, res) => {
 class StudentController extends BaseController {
     constructor() {
         super(Student);
+        this.getAllStudents = this.getAllStudents.bind(this);
+
+    }
+      
+    handleError(error, context) {
+        console.error(`❌ Error during ${context}:`, error);
+        return {
+            status: 'error',
+            message: `Error during ${context}`,
+            details: error.message || error,
+        };
     }
 
+    async getAllStudents(req, res, next) {
+        try {
+            const students = await Student.find().populate('user');
+            res.json(students);
+        } catch (error) {
+            next(this.handleError(error, 'fetching all candidates'));
+        }
+    }
+    
     async getStudentDetails(req, res, next) {
         try {
             const student = await Student.findById(req.params.id)
