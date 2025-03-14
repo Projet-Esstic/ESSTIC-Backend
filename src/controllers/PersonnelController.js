@@ -292,6 +292,204 @@ class PersonnelController extends BaseController {
             }
         }
     }
+
+    async createSchedule(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { schedule } = req.body; // { class: 'Math', date: '2023-10-10', time: '10:00 AM', resource: 'Room 101' }
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.schedule.push(schedule);
+            await personnel.save();
+    
+            res.status(201).json({ message: 'Schedule created successfully', schedule });
+        } catch (error) {
+            next(this.handleError(error, 'creating schedule'));
+        }
+    }
+    
+    async updateSchedule(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { scheduleId, updates } = req.body; // updates: { class: 'Physics', date: '2023-10-11', time: '11:00 AM' }
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            const schedule = personnel.schedule.id(scheduleId);
+            if (!schedule) {
+                throw createError(404, 'Schedule not found');
+            }
+    
+            Object.assign(schedule, updates);
+            await personnel.save();
+    
+            res.json({ message: 'Schedule updated successfully', schedule });
+        } catch (error) {
+            next(this.handleError(error, 'updating schedule'));
+        }
+    }
+    
+    async getSchedule(req, res, next) {
+        try {
+            const { id } = req.params;
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            res.json({ schedule: personnel.schedule });
+        } catch (error) {
+            next(this.handleError(error, 'fetching schedule'));
+        }
+    }
+
+    async markAttendance(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { date, status } = req.body; // status: 'present', 'absent', 'late'
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.attendance.push({ date, status });
+            await personnel.save();
+    
+            res.status(201).json({ message: 'Attendance marked successfully', attendance: { date, status } });
+        } catch (error) {
+            next(this.handleError(error, 'marking attendance'));
+        }
+    }
+    
+    async getAttendance(req, res, next) {
+        try {
+            const { id } = req.params;
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            res.json({ attendance: personnel.attendance });
+        } catch (error) {
+            next(this.handleError(error, 'fetching attendance'));
+        }
+    }
+    
+    async requestLeave(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { leaveType, startDate, endDate, reason } = req.body;
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.leaveHistory.push({
+                leaveType,
+                leaveStartDate: startDate,
+                leaveEndDate: endDate,
+                reason,
+                approvalStatus: 'pending',
+            });
+    
+            await personnel.save();
+    
+            res.status(201).json({ message: 'Leave request submitted successfully', leaveRequest: personnel.leaveHistory.slice(-1)[0] });
+        } catch (error) {
+            next(this.handleError(error, 'requesting leave'));
+        }
+    }
+    
+    async approveLeave(req, res, next) {
+        try {
+            const { id, leaveId } = req.params;
+            const { status } = req.body; // status: 'approved', 'rejected'
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            const leaveRequest = personnel.leaveHistory.id(leaveId);
+            if (!leaveRequest) {
+                throw createError(404, 'Leave request not found');
+            }
+    
+            leaveRequest.approvalStatus = status;
+            await personnel.save();
+    
+            res.json({ message: 'Leave request updated successfully', leaveRequest });
+        } catch (error) {
+            next(this.handleError(error, 'approving leave'));
+        }
+    }
+
+    async assignSubjects(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { subjects } = req.body; // subjects: ['Math', 'Physics']
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.assignedSubjects = subjects;
+            await personnel.save();
+    
+            res.json({ message: 'Subjects assigned successfully', assignedSubjects: personnel.assignedSubjects });
+        } catch (error) {
+            next(this.handleError(error, 'assigning subjects'));
+        }
+    }
+
+    async suspendTeacher(req, res, next) {
+        try {
+            const { id } = req.params;
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.employmentStatus = 'suspended';
+            await personnel.save();
+    
+            res.json({ message: 'Teacher suspended successfully', personnel });
+        } catch (error) {
+            next(this.handleError(error, 'suspending teacher'));
+        }
+    }
+
+    async updateTeacherRole(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { newRole } = req.body; // newRole: 'seniorTeacher', 'coordinator'
+    
+            const personnel = await Personnel.findById(id);
+            if (!personnel) {
+                throw createError(404, 'Personnel not found');
+            }
+    
+            personnel.role = newRole;
+            await personnel.save();
+    
+            res.json({ message: 'Teacher role updated successfully', personnel });
+        } catch (error) {
+            next(this.handleError(error, 'updating teacher role'));
+        }
+    }
 }
 
 export default new PersonnelController();

@@ -151,7 +151,32 @@ const personnelSchema = new Schema({
         projectDescription: { type: String, trim: true },
         role: { type: String, trim: true },
         projectDuration: { type: String, trim: true }
-    }]
+    }],
+    schedule: [{
+        class: { type: String, required: true },
+        date: { type: Date, required: true },
+        time: { type: String, required: true },
+        resource: { type: String, required: true },
+    }],
+
+    attendance: [{
+        date: { type: Date, required: true },
+        status: { type: String, enum: ['present', 'absent', 'late'], required: true },
+    }],
+
+    assignedSubjects: [{ type: String }],
+
+    employmentStatus: {
+        type: String,
+        enum: ['active', 'suspended', 'onLeave', 'retired', 'terminated'],
+        default: 'active',
+    },
+
+    role: {
+        type: String,
+        enum: ['teacher', 'seniorTeacher', 'coordinator', 'admin'],
+        default: 'teacher',
+    },
 }, {
     timestamps: true
 });
