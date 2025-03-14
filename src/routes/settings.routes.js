@@ -1,6 +1,8 @@
 import express from "express";
 import SettingsController from "../controllers/SettingsController.js";
 import { getPermissionsFromRoles } from "../middleware/role.middleware.js";
+import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
+
 const router = express.Router();
 
 // Permissions Routes
@@ -17,7 +19,7 @@ router.post("/roles", SettingsController.createOrUpdateRole);
 router.delete("/roles", SettingsController.deleteRole);
 router.put("/roles/update-status", SettingsController.updateRoleStatus);
 
-router.get("/roles/permissions", getPermissionsFromRoles,(req, res) => {
+router.get("/roles/permissions",authenticate, getPermissionsFromRoles,(req, res) => {
     res.status(200).json({ permissions: req.permissions });
   });
 

@@ -28,7 +28,7 @@ class UserController extends BaseController {
             next(this.handleError(error, 'user registration'));
         }
     }*/
-    async register (req, res) {
+    async register(req, res) {
         try {
             const {
                 firstName,
@@ -40,18 +40,18 @@ class UserController extends BaseController {
                 gender,
                 roles
             } = req.body;
-    
+
             // Validate required fields
             if (!firstName || !lastName || !email || !password || !dateOfBirth) {
                 return res.status(400).json({ message: 'Missing required fields: firstName, lastName, email, password, or dateOfBirth.' });
             }
-    
+
             // Check if the email is already registered
             const existingUser = await User.findOne({ email });
             if (existingUser) {
                 return res.status(400).json({ message: 'Email is already registered.' });
             }
-    
+
             // Create the new user
             const newUser = new User({
                 firstName,
@@ -63,10 +63,10 @@ class UserController extends BaseController {
                 gender,
                 roles: roles || ['candidate'] // Default role is 'candidate'
             });
-    
+
             // Save the user to the database
             await newUser.save();
-    
+
             // Return the created user (excluding sensitive fields)
             const userResponse = {
                 _id: newUser._id,
@@ -80,19 +80,19 @@ class UserController extends BaseController {
                 createdAt: newUser.createdAt,
                 updatedAt: newUser.updatedAt
             };
-    
+
             return res.status(201).json({ message: 'User registered successfully.', user: userResponse });
-    
+
         } catch (error) {
             console.error('Error in registerUser:', error);
             return res.status(500).json({ message: 'Internal server error.' });
         }
     }
 
-    async login(req, res) {
+    async login(req, res, next) {
         try {
             const { email, password } = req.body;
-            
+
             // Include security fields in query
             const user = await User.findOne({ email })
                 .select('+password +security.loginAttempts +security.lockUntil');
@@ -109,7 +109,7 @@ class UserController extends BaseController {
             // Verify password
             const isValid = await user.comparePassword(password);
             console.log(isValid);
-            
+
             if (!isValid) {
                 await user.incrementLoginAttempts();
                 throw createError(401, 'Invalid credentials');
@@ -121,17 +121,22 @@ class UserController extends BaseController {
                 $unset: { 'security.lockUntil': 1 },
                 lastLogin: new Date()
             });
-
+            console.log(user.toJSON());
+            // console.log(res.token);
             // Generate JWT token
             const token = jwt.sign(
                 { userId: user._id, roles: user.roles },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
-
-            res.json({ token, user: user.toJSON() });
+            res.user = user.toJSON()
+            res.token = token
+            console.log(res.user?.roles);
+            req.body["roles"] = res.user?.roles
+            next()
+            // res.json({ token, user: user.toJSON() });
         } catch (error) {
-            console.log("error test:",error.message)
+            console.log("error test:", error.message)
             // console.log("error test:",error.code)
             res.json(error);
             // next(this.handleError(error, 'user login'));
@@ -142,7 +147,7 @@ class UserController extends BaseController {
         try {
             const user = await User.findById(req.user.userId)
                 .select('-security');
-            
+
             if (!user) {
                 throw createError(404, 'User not found');
             }

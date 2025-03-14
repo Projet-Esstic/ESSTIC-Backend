@@ -62,7 +62,7 @@ const userSchema = new mongoose.Schema({
   },
   region: {
     type: String,
-    required: true,
+    // required: true,
   },
 
   // Contact details.

@@ -2,7 +2,8 @@ import Settings from "../models/Settings.js"; // Import Settings model
 
 export const getPermissionsFromRoles = async (req, res, next) => {
     try {
-        const { roles } = req.body;
+        const roles = req.user?.roles || req.body.roles;
+        // const roles 
 
         if (!roles || !Array.isArray(roles) || roles.length === 0) {
             return res.status(400).json({ message: "Invalid roles input" });
@@ -21,7 +22,7 @@ export const getPermissionsFromRoles = async (req, res, next) => {
             return res.status(404).json({ message: "Permission types not found" });
         }
 
-        const availablePermissions = permissionData.filter(m => m.status)?.map(m=>m.name); // e.g., ["read", "write", "create", "delete", "update"]
+        const availablePermissions = permissionData.filter(m => m.status)?.map(m => m.name); // e.g., ["read", "write", "create", "delete", "update"]
 
         // Initialize an empty permissions object dynamically
         let mergedPermissions = {};
