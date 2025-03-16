@@ -236,6 +236,8 @@ class PersonnelController extends BaseController {
     async getAllPersonnel(req, res, next) {
         try {
             const personnel = await Personnel.find().populate('user');
+            console.log(personnel);
+            
             res.json(personnel);
         } catch (error) {
             next(this.handleError(error, 'fetching all personnel'));

@@ -9,48 +9,48 @@ const router = express.Router();
 // Create a new class (Admin only)
 router.post(
     '/',
-    authenticate,
-    authorizeRoles(['admin']),
+    // authenticate,
+    // authorizeRoles(['admin']),
     classController.createClass
 );
 
 // Get all classes
 router.get(
     '/',
-    authenticate,
-    authorizeRoles(['admin', 'teacher']),
+    // authenticate,
+    // authorizeRoles(['admin', 'teacher']),
     classController.getAllClasses
 );
 
 // Get class by ID
 router.get(
     '/:id',
-    authenticate,
-    authorizeRoles(['admin', 'teacher']),
+    // authenticate,
+    // authorizeRoles(['admin', 'teacher']),
     classController.getClassById
 );
 
 // Update class
 router.put(
     '/:id',
-    authenticate,
-    authorizeRoles(['admin']),
+    // authenticate,
+    // authorizeRoles(['admin']),
     classController.updateClass
 );
 
 // Delete class
 router.delete(
     '/:id',
-    authenticate,
-    authorizeRoles(['admin']),
+    // authenticate,
+    // authorizeRoles(['admin']),
     classController.deleteClass
 );
 
 // Add course to class
 router.post(
     '/:id/courses',
-    authenticate,
-    authorizeRoles(['admin']),
+    // authenticate,
+    // authorizeRoles(['admin']),
     classController.addCourseToClass
 );
 

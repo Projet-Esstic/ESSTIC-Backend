@@ -13,6 +13,11 @@ const semesterSchema = new mongoose.Schema({
         match: [/^\d{4}-\d{4}$/, 'Academic year must be in format YYYY-YYYY'],
         trim: true
     },
+    department: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: true
+    },
     startDate: {
         type: Date,
         required: true,
@@ -27,11 +32,6 @@ const semesterSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    courses: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course',
-        index: true
-    }],
     isActive: {
         type: Boolean,
         default: false // Marks if the semester is currently ongoing
@@ -39,12 +39,19 @@ const semesterSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Tracks admin or professor who created it
-        required: true
     }
 }, { timestamps: true });
 
+// Remove the courses array and replace with a virtual
+semesterSchema.virtual('courses', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'semester',
+    justOne: false
+});
+
 // Compound index for fast lookups
-semesterSchema.index({ academicYear: 1, name: 1 }, { unique: true });
+semesterSchema.index({ academicYear: 1, name: 1, department: 1 }, { unique: true });
 
 const Semester = mongoose.model('Semester', semesterSchema);
 export default Semester;
