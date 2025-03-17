@@ -22,12 +22,12 @@ const courseSchema = new mongoose.Schema({
         min: [1, 'Credit hours must be at least 1']
     },
     // For regular student courses, creditHours is required.
-    creditHours: {
+    credit: {
         type: Number,
         required: function () {
             return !this.isEntranceExam;
         },
-        min: [1, 'Credit hours must be at least 1']
+        min: [1, 'Credit must be at least 1']
     },
 
     isActive: {

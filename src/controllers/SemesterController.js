@@ -9,9 +9,48 @@ class SemesterController extends BaseController {
 
     async getAllSemesters(req, res, next) {
         try {
-            const semesters = await Semester.find({})
-                .populate('courses', 'courseName courseCode');
-            res.json(semesters);
+            const { department, academicYear } = req.query;
+            const query = {};
+
+            if (department) {
+                query.department = department;
+            }
+            if (academicYear) {
+                query.academicYear = academicYear;
+            }
+
+            const semesters = await Semester.find(query)
+                .populate({
+                    path: 'department',
+                    select: 'name code description faculty'
+                })
+                .populate('courses', 'courseName courseCode')
+                .populate('createdBy', 'firstName lastName')
+                .lean(); // Convert to plain JavaScript objects
+
+            // Format the response
+            const formattedSemesters = semesters.map(semester => ({
+                _id: semester._id,
+                name: semester.name,
+                academicYear: semester.academicYear,
+                department: {
+                    _id: semester.department._id,
+                    name: semester.department.name,
+                    code: semester.department.code,
+                    description: semester.department.description,
+                    faculty: semester.department.faculty
+                },
+                startDate: semester.startDate,
+                endDate: semester.endDate,
+                isActive: semester.isActive,
+                courses: semester.courses || [],
+                createdBy: semester.createdBy,
+                createdAt: semester.createdAt,
+                updatedAt: semester.updatedAt
+            }));
+            console.log(formattedSemesters);
+            
+            res.json(formattedSemesters);
         } catch (error) {
             next(this.handleError(error, 'fetching all semesters'));
         }
@@ -31,12 +70,16 @@ class SemesterController extends BaseController {
     }
 
     async createSemester(req, res, next) {
+        console.log(req.body);
+        
         try {
             const newSemester = new Semester(req.body);
             await newSemester.save();
             res.status(201).json(newSemester);
         } catch (error) {
-            next(this.handleError(error, 'creating semester'));
+           // console.log(error);
+            
+            res.status(500).json(error)
         }
     }
 
