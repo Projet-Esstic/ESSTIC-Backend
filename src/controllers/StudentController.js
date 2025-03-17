@@ -318,7 +318,15 @@ class StudentController extends BaseController {
 
     async getAllStudents(req, res, next) {
         try {
-            const students = await Student.find().populate('user');
+            const students = await Student.find()
+                .populate('user')
+                .populate({
+                    path: 'candidate',
+                    select: 'fieldOfStudy',
+                    populate: {
+                        path: 'fieldOfStudy'
+                    }
+                });
             res.json(students);
         } catch (error) {
             next(this.handleError(error, 'fetching all candidates'));
@@ -328,19 +336,20 @@ class StudentController extends BaseController {
     async getStudentDetails(req, res, next) {
         try {
             const student = await Student.findById(req.params.id)
-                .populate('user', 'name email')
-                .populate({
-                    path: 'courses',
-                    populate: { path: 'courseId', select: 'courseName courseCode' }
-                });
+                .populate('user')
+                // .populate({
+                //     path: 'courses',
+                //     populate: { path: 'courseId', select: 'courseName courseCode' }
+                // });
 
             if (!student) {
                 throw createError(404, 'Student not found');
             }
-
+            console.log(student);
             res.json(student);
         } catch (error) {
-            next(this.handleError(error, 'fetching student details'));
+            console.log(error);
+            //next(this.handleError(error, 'fetching student details'));
         }
     }
 

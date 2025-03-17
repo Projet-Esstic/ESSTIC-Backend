@@ -13,6 +13,6 @@ export const validateClass = (data) => {
 };
 
 
-export function validateObjectId(id) {
+export const validateObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
-}
+};

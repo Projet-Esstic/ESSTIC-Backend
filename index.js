@@ -17,6 +17,8 @@ import personnelRoutes from "./src/routes/personnel.routes.js";
 import settingRoutes from "./src/routes/settings.routes.js";
 import "express-async-errors";
 import requestRoutes from "./src/routes/request.routes.js";
+import courseModuleRoutes from './src/routes/courseModuleRoutes.js';
+
 
 
 // Create Express app
@@ -76,6 +78,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/personnel", personnelRoutes);
 app.use("/api/settings", settingRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/modules", courseModuleRoutes);
 // Middleware for handling not found routes
 app.use(notFound);
 

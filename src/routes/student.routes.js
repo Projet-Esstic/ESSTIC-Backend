@@ -11,19 +11,21 @@ router.get('/',
     studentController.getAllStudents);
 
 // Routes for Student operations
-router.get('/:id', authenticate, studentController.getStudentDetails);
+router.get('/:id',
+  // authenticate,
+   studentController.getStudentDetails);
 
 router.put(
   '/academic-info/:studentId',
-  authenticate,
-  authorizeRoles(['admin', 'teacher']),
+  // authenticate,
+  // authorizeRoles(['admin', 'teacher']),
   studentController.updateAcademicInfo
 );
 
 router.post(
   '/marks/:studentId/:courseId',
-  authenticate,
-  authorizeRoles(['admin', 'teacher']),
+  // authenticate,
+  // authorizeRoles(['admin', 'teacher']),
   studentController.updateMarks
 );
 
