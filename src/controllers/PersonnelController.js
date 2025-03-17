@@ -58,7 +58,7 @@ class PersonnelController extends BaseController {
                 firstName,
                 lastName,
                 email,
-                password: hashedPassword,
+                password: password,
                 phoneNumber,
                 dateOfBirth,
                 gender,
