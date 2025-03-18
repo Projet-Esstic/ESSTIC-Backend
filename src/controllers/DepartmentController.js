@@ -13,8 +13,8 @@ class DepartmentController extends BaseController {
                 .populate('headOfDepartment', 'name email')
                 .populate('createdBy', 'name email')
                 .populate('coursesList', 'courseName courseCode');
-                
-            console.log('Fetched departments:', departments);
+
+            // console.log('Fetched departments:', departments);
             res.json(departments);
         } catch (error) {
             console.error('Error fetching departments:', error);
@@ -34,25 +34,59 @@ class DepartmentController extends BaseController {
         }
     }
 
-    async createDepartment(req, res, next) {
+    async createDepartment(req, res) {
+        const { name, code, description, headOfDepartment } = req.body;
+        console.log(headOfDepartment)
+        // Validate required fields
+        if (!name || !code) {
+            return res.status(400).json({ message: 'Name and code are required' });
+        }
+
         try {
-            const newDepartment = new Department(req.body);
+            // Create a new department
+            const newDepartment = new Department({
+                name,
+                code,
+                description,
+                headOfDepartment,
+                createdBy: "67d4107246023123ea84d3ce"
+            });
+
             await newDepartment.save();
-            res.status(201).json(newDepartment);
-        } catch (error) {
-            next(this.handleError(error, 'creating department'));
+            return res.status(201).json(newDepartment);
+        } catch (err) {
+            console.error('Error creating department:', err);
+            return res.status(500).json({ message: 'Failed to create department' });
         }
     }
 
     async updateDepartment(req, res, next) {
+        const { id } = req.params;
+        const { name, code, description, headOfDepartment } = req.body;
+
+        // Validate required fields
+        if (!name || !code) {
+            return res.status(400).json({ message: 'Name and code are required' });
+        }
+
         try {
-            const updatedDepartment = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true });
-            if (!updatedDepartment) {
-                throw createError(404, 'Department not found');
+            const department = await Department.findById(id);
+            if (!department) {
+                return res.status(404).json({ message: 'Department not found' });
             }
-            res.json(updatedDepartment);
-        } catch (error) {
-            next(this.handleError(error, 'updating department'));
+            console.log(department)
+
+            department.name = name || department.name;
+            department.code = code || department.code;
+            department.description = description || department.description;
+            department.headOfDepartment = headOfDepartment || department.headOfDepartment;
+            department.createdBy = "67d4107246023123ea84d3ce" || department.createdBy;
+
+            await department.save();
+            return res.status(200).json(department);
+        } catch (err) {
+            console.error('Error updating department:', err);
+            return res.status(500).json({ message: 'Failed to update department' });
         }
     }
 
