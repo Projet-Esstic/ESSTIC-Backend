@@ -7,8 +7,8 @@ const router = express.Router();
 // Routes for Department operations
 router.get('/', departmentController.getAllDepartments);
 router.get('/:id', authenticate, departmentController.getDepartment);
-router.post('/', authenticate, authorizeRoles(['admin']), departmentController.createDepartment);
-router.put('/:id', authenticate, authorizeRoles(['admin']), departmentController.updateDepartment);
-router.delete('/:id', authenticate, authorizeRoles(['admin']), departmentController.deleteDepartment);
+router.post('/', departmentController.createDepartment);
+router.put('/:id', departmentController.updateDepartment);
+router.delete('/:id', departmentController.deleteDepartment);
 
 export default router;

@@ -1,6 +1,7 @@
 import BaseController from './BaseController.js';
 import Course from '../models/Course.js';
 import createError from 'http-errors';
+import mongoose from 'mongoose';
 
 class CourseController extends BaseController {
     constructor() {
@@ -15,13 +16,13 @@ class CourseController extends BaseController {
 
     async getAllCourses(req, res, next) {
         try {
-            console.log('Fetching all courses...');
+            // console.log('Fetching all courses...');
             const courses = await Course.find({})
                 .populate('semester', 'name academicYear')
                 .populate('instructors', 'name email')
                 .populate('department', 'name code');
 
-            console.log('Fetched all courses:', courses);
+            // console.log('Fetched all courses:', courses);
             res.json(courses);
         } catch (error) {
             next(this.handleError(error, 'fetching all courses'));
@@ -46,10 +47,10 @@ class CourseController extends BaseController {
     async createCourse(req, res, next) {
         try {
             console.log('Received course data:', req.body);
-            
+
             // Remove _id if it's provided
             delete req.body._id;
-            
+
             // Handle department data based on isEntranceExam
             if (req.body.isEntranceExam) {
                 // For entrance exams, expect an array of departments with coefficients
@@ -58,7 +59,7 @@ class CourseController extends BaseController {
                         message: 'For entrance exams, department must be an array of objects with departmentInfo and coefficient'
                     });
                 }
-                
+
                 // Format each department entry
                 req.body.department = req.body.department.map(dep => ({
                     departmentInfo: dep.departmentInfo._id || dep.departmentInfo,
@@ -67,34 +68,37 @@ class CourseController extends BaseController {
             } else {
                 // For regular courses, convert to array format
                 if (!Array.isArray(req.body.department)) {
-                    req.body.department = [{ departmentInfo: req.body.department }];
+                    req.body.department = [{ departmentInfo: new mongoose.Types.ObjectId(req.body.department) }];
                 } else {
-                    req.body.department = req.body.department.map(depId => ({
-                        departmentInfo: depId
+                    console.log("req.body.department", req.body.department)
+                    // req.body.department = req.body.department.map(departmentId => new mongoose.Types.ObjectId(departmentId));
+                    req.body.department = req.body.department.map(departmentId =>
+                    ({
+                        "departmentInfo": new mongoose.Types.ObjectId(departmentId.departmentInfo)
                     }));
                 }
             }
-            
+
             const newCourse = new Course(req.body);
             const savedCourse = await newCourse.save();
             console.log('Created new course:', savedCourse);
-            
+
             // Populate the department details for the response
             const populatedCourse = await Course.findById(savedCourse._id)
                 .populate('department.departmentInfo', 'name code')
                 .populate('semester', 'name academicYear')
                 .populate('instructors', 'name email');
-                
+
             res.status(201).json(populatedCourse);
         } catch (error) {
             console.error('Error creating course:', error);
             if (error.name === 'ValidationError') {
-                res.status(400).json({ 
-                    message: 'Validation Error', 
+                res.status(400).json({
+                    message: 'Validation Error',
                     errors: Object.values(error.errors).map(err => err.message)
                 });
             } else if (error.code === 11000) {
-                res.status(400).json({ 
+                res.status(400).json({
                     message: 'Course code must be unique',
                     field: Object.keys(error.keyPattern)[0]
                 });

@@ -23,16 +23,16 @@ const classController = {
         try {
             const { department, academicYear } = req.query;
             const filter = {};
+            console.log(department, academicYear)
             if (department) filter.department = department;
             if (academicYear) filter.academicYear = academicYear;
-
             const classes = await Class.find(filter)
                 .populate('department', 'name')
-                .populate('classTeacher', 'name email')
+                .populate('classTeacher', 'name')
                 .populate('courses.course', 'name code credits')
                 .populate('courses.lecturer', 'name email');
-
-            res.status(200).json({ success: true, data: classes });
+            console.log(classes)
+            res.status(200).json(classes);
         } catch (error) {
             throw new ApiError(error.statusCode || 500, error.message);
         }
@@ -105,7 +105,7 @@ const classController = {
         try {
             const { id } = req.params;
             const { courseId, lecturerId, schedule } = req.body;
-            
+
             [id, courseId, lecturerId].forEach(validateObjectId);
 
             const classData = await Class.findById(id);
@@ -119,12 +119,12 @@ const classController = {
             }
 
             if (schedule) {
-                const hasConflict = classData.courses.some(c => 
-                    c.schedule.some(s1 => 
-                        schedule.some(s2 => 
+                const hasConflict = classData.courses.some(c =>
+                    c.schedule.some(s1 =>
+                        schedule.some(s2 =>
                             s1.day === s2.day &&
                             ((s1.startTime <= s2.startTime && s2.startTime < s1.endTime) ||
-                             (s2.startTime <= s1.startTime && s1.startTime < s2.endTime))
+                                (s2.startTime <= s1.startTime && s1.startTime < s2.endTime))
                         )
                     )
                 );
@@ -143,7 +143,7 @@ const classController = {
     async removeCourseFromClass(req, res) {
         try {
             const { id, courseId } = req.params;
-            
+
             [id, courseId].forEach(validateObjectId);
 
             const classData = await Class.findById(id);
@@ -170,7 +170,7 @@ const classController = {
             if (studentIds.length === 0) {
                 throw new ApiError(400, "studentIds can not be empty");
             }
-            
+
             validateObjectId(id);
             studentIds.forEach(validateObjectId);
 
@@ -179,7 +179,7 @@ const classController = {
                 { $addToSet: { students: { $each: studentIds } } }, // Add students if they don't already exist
                 { new: true } // Return the updated document
             );
-    
+
             if (!updatedClass) {
                 throw new ApiError(404, 'Class not found');
             }
@@ -204,7 +204,7 @@ const classController = {
     async removeStudentFromClass(req, res) {
         try {
             const { id, studentId } = req.params;
-            
+
             [id, studentId].forEach(validateObjectId);
 
             const classData = await Class.findById(id);
