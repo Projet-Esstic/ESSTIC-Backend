@@ -12,36 +12,37 @@ export const registerStudent = async (req, res) => {
         const results = [];
         const errors = [];
         const emailPromises = []; // Array to hold email promises
-        console.log('Processing registrations:', studentRegistrations);
+        // console.log('Processing registrations:', studentRegistrations);
 
         for (const registration of studentRegistrations) {
             try {
                 const { user, candidate, academicInfo } = registration;
-                console.log('Processing registration:', { user, candidate });
-                console.log('Academic Info:', academicInfo);
+                // console.log('Processing registration:', { user, candidate });
+                // console.log('Academic Info:', academicInfo);
 
                 // Validate required fields
                 if (!user || !candidate || !academicInfo) {
-                    console.log('Missing required fields for:', { user, candidate });
-                    errors.push({ 
-                        user, 
-                        error: 'Missing required fields: user, candidate, or academicInfo.' 
+                    // console.log('Missing required fields for:', { user, candidate });
+                    errors.push({
+                        user,
+                        error: 'Missing required fields: user, candidate, or academicInfo.'
                     });
                     continue;
                 }
 
                 // Check if the user exists
                 const existingUser = await User.findById(user);
-                console.log('Existing user:', existingUser);
+                // console.log('Existing user:', existingUser);
                 if (!existingUser) {
-                    console.log('User not found:', user);
+                    // console.log('User not found:', user);
                     errors.push({ user, error: 'User not found.' });
                     continue;
                 }
 
                 // Check if the candidate exists
                 const existingCandidate = await Candidate.findById(candidate);
-                console.log('Existing candidate:', existingCandidate);
+                console.log('candidate:', candidate);
+                console.log('Existing candidate:', existingCandidate.user);
                 if (!existingCandidate) {
                     console.log('Candidate not found:', candidate);
                     errors.push({ user, error: 'Candidate not found.' });
@@ -71,9 +72,9 @@ export const registerStudent = async (req, res) => {
                 let academicInfoValid = true;
                 for (const [field, validator] of Object.entries(requiredAcademicFields)) {
                     if (!academicInfo[0][field]) {
-                        errors.push({ 
-                            user, 
-                            error: `Missing required academicInfo field: ${field}` 
+                        errors.push({
+                            user,
+                            error: `Missing required academicInfo field: ${field}`
                         });
                         academicInfoValid = false;
                         break;
@@ -81,17 +82,17 @@ export const registerStudent = async (req, res) => {
 
                     if (Array.isArray(validator)) {
                         if (!validator.includes(academicInfo[0][field])) {
-                            errors.push({ 
-                                user, 
-                                error: `Invalid ${field}. Must be one of: ${validator.join(', ')}` 
+                            errors.push({
+                                user,
+                                error: `Invalid ${field}. Must be one of: ${validator.join(', ')}`
                             });
                             academicInfoValid = false;
                             break;
                         }
                     } else if (!validator(academicInfo[0][field])) {
-                        errors.push({ 
-                            user, 
-                            error: `Invalid ${field} format` 
+                        errors.push({
+                            user,
+                            error: `Invalid ${field} format`
                         });
                         academicInfoValid = false;
                         break;
@@ -118,9 +119,9 @@ export const registerStudent = async (req, res) => {
                 if (academicInfo[0].academicYears) {
                     for (const year of academicInfo[0].academicYears) {
                         if (!year.year || !Array.isArray(year.semesters)) {
-                            errors.push({ 
-                                user, 
-                                error: 'Invalid academic year structure. Each year must have a year and semesters array.' 
+                            errors.push({
+                                user,
+                                error: 'Invalid academic year structure. Each year must have a year and semesters array.'
                             });
                             academicInfoValid = false;
                             break;
@@ -143,17 +144,17 @@ export const registerStudent = async (req, res) => {
                     });
 
                     const savedStudent = await newStudent.save({ session });
-                    
+                    console.log("savedStudent:", savedStudent.candidate)
                     // Update candidate status to passed within the same transaction
                     await Candidate.findByIdAndUpdate(
-                        candidate, 
+                        candidate,
                         { applicationStatus: 'passed' },
                         { session }
                     );
-
+                    console.log("update candidate:")
                     // Commit the transaction
                     await session.commitTransaction();
-                    console.log('Saved student:', savedStudent);
+                    // console.log('Saved student:', savedStudent);
 
                     // Queue email sending after successful transaction
                     const emailPromise = sendStudentRegistrationEmail(
@@ -195,8 +196,8 @@ export const registerStudent = async (req, res) => {
         // Wait for all emails to be sent
         await Promise.allSettled(emailPromises);
 
-        console.log('Final results:', results);
-        console.log('Errors:', errors);
+        // console.log('Final results:', results);
+        // console.log('Errors:', errors);
 
         return res.status(200).json({
             message: 'Student registration process completed',
@@ -306,7 +307,7 @@ class StudentController extends BaseController {
         this.getAllStudents = this.getAllStudents.bind(this);
 
     }
-      
+
     handleError(error, context) {
         console.error(`❌ Error during ${context}:`, error);
         return {
@@ -324,7 +325,7 @@ class StudentController extends BaseController {
             next(this.handleError(error, 'fetching all candidates'));
         }
     }
-    
+
     async getStudentDetails(req, res, next) {
         try {
             const student = await Student.findById(req.params.id)

@@ -79,50 +79,6 @@ const studentSchema = new mongoose.Schema({
                     dateModified: { type: Date, default: Date.now }
                 }]
             }]
-            // marks: {
-            //         CA: {
-            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
-            //             hasWritten: { type: Boolean, default: false },
-            //             hasJustified: { type: Boolean, default: false },
-            //             modified: [{
-            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modifiedBy: {
-            //                     name: { type: String, required: true },
-            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-            //                 },
-            //                 dateModified: { type: Date, default: Date.now }
-            //             }]
-            //         },
-            //         EXAM: {
-            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
-            //             hasWritten: { type: Boolean, default: false },
-            //             hasJustified: { type: Boolean, default: false },
-            //             modified: [{
-            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modifiedBy: {
-            //                     name: { type: String, required: true },
-            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-            //                 },
-            //                 dateModified: { type: Date, default: Date.now }
-            //             }]
-            //         },
-            //         RESIT: {
-            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
-            //             hasWritten: { type: Boolean, default: false },
-            //             hasJustified: { type: Boolean, default: false },
-            //             modified: [{
-            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
-            //                 modifiedBy: {
-            //                     name: { type: String, required: true },
-            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-            //                 },
-            //                 dateModified: { type: Date, default: Date.now }
-            //             }]
-            //         }
-            //     }
         }]
     }]
 }, { timestamps: true });
