@@ -63,63 +63,94 @@ const studentSchema = new mongoose.Schema({
                 ref: 'Course',
                 required: true
             },
-            marks: {
-                CA: {
-                    currentMark: { type: Number, default: 0, min: 0, max: 20 },
-                    hasWritten: { type: Boolean, default: false },
-                    hasJustified: { type: Boolean, default: false },
-                    modified: [{
-                        preMark: { type: Number, required: true, min: 0, max: 20 },
-                        modMark: { type: Number, required: true, min: 0, max: 20 },
-                        modifiedBy: {
-                            name: { type: String, required: true },
-                            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-                        },
-                        dateModified: { type: Date, default: Date.now }
-                    }]
-                },
-                EXAM: {
-                    currentMark: { type: Number, default: 0, min: 0, max: 20 },
-                    hasWritten: { type: Boolean, default: false },
-                    hasJustified: { type: Boolean, default: false },
-                    modified: [{
-                        preMark: { type: Number, required: true, min: 0, max: 20 },
-                        modMark: { type: Number, required: true, min: 0, max: 20 },
-                        modifiedBy: {
-                            name: { type: String, required: true },
-                            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-                        },
-                        dateModified: { type: Date, default: Date.now }
-                    }]
-                },
-                RESIT: {
-                    currentMark: { type: Number, default: 0, min: 0, max: 20 },
-                    hasWritten: { type: Boolean, default: false },
-                    hasJustified: { type: Boolean, default: false },
-                    modified: [{
-                        preMark: { type: Number, required: true, min: 0, max: 20 },
-                        modMark: { type: Number, required: true, min: 0, max: 20 },
-                        modifiedBy: {
-                            name: { type: String, required: true },
-                            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-                        },
-                        dateModified: { type: Date, default: Date.now }
-                    }]
-                }
-            }
+            assessments: [{
+                type: { type: String, enum: ['CA', 'EXAM', 'RESIT'], required: true },
+                isActive: { type: Boolean, default: true },
+                currentMark: { type: Number, default: 0, min: 0, max: 20 },
+                hasWritten: { type: Boolean, default: false },
+                hasJustified: { type: Boolean, default: false },
+                modified: [{
+                    preMark: { type: Number, required: true, min: 0, max: 20 },
+                    modMark: { type: Number, required: true, min: 0, max: 20 },
+                    modifiedBy: {
+                        name: { type: String, required: true },
+                        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+                    },
+                    dateModified: { type: Date, default: Date.now }
+                }]
+            }]
+            // marks: {
+            //         CA: {
+            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
+            //             hasWritten: { type: Boolean, default: false },
+            //             hasJustified: { type: Boolean, default: false },
+            //             modified: [{
+            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modifiedBy: {
+            //                     name: { type: String, required: true },
+            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+            //                 },
+            //                 dateModified: { type: Date, default: Date.now }
+            //             }]
+            //         },
+            //         EXAM: {
+            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
+            //             hasWritten: { type: Boolean, default: false },
+            //             hasJustified: { type: Boolean, default: false },
+            //             modified: [{
+            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modifiedBy: {
+            //                     name: { type: String, required: true },
+            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+            //                 },
+            //                 dateModified: { type: Date, default: Date.now }
+            //             }]
+            //         },
+            //         RESIT: {
+            //             currentMark: { type: Number, default: 0, min: 0, max: 20 },
+            //             hasWritten: { type: Boolean, default: false },
+            //             hasJustified: { type: Boolean, default: false },
+            //             modified: [{
+            //                 preMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modMark: { type: Number, required: true, min: 0, max: 20 },
+            //                 modifiedBy: {
+            //                     name: { type: String, required: true },
+            //                     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+            //                 },
+            //                 dateModified: { type: Date, default: Date.now }
+            //             }]
+            //         }
+            //     }
         }]
     }]
 }, { timestamps: true });
 
 // Pre-save middleware to set default marks to 0 if a student has not written and has not justified
 studentSchema.pre('save', function (next) {
+    if (this.academicInfo && this.academicInfo.courses) {
+        this.academicInfo.courses.forEach(course => {
+            if (course && course.assessments) {
+                course.assessments.forEach(assessment => {
+                    if (!assessment.hasWritten && !assessment.hasJustified) {
+                        assessment.currentMark = 0;
+                    }
+                });
+            }
+        });
+    }
+    next();
+});
+
+studentSchema.pre('save', function (next) {
     // Check if courses exist before trying to iterate
     if (this.academicInfo && this.academicInfo.courses) {
         this.academicInfo.courses.forEach(course => {
             if (course && course.marks) {
                 ['CA', 'EXAM', 'RESIT'].forEach(examType => {
-                    if (course.marks[examType] && 
-                        !course.marks[examType].hasWritten && 
+                    if (course.marks[examType] &&
+                        !course.marks[examType].hasWritten &&
                         !course.marks[examType].hasJustified) {
                         course.marks[examType].currentMark = 0;
                     }

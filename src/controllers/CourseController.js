@@ -29,6 +29,20 @@ class CourseController extends BaseController {
         }
     }
 
+    async getAllNotEntranceCourses(req, res, next) {
+        try {
+            // console.log('Fetching all courses...');
+            const courses = await Course.find({ isEntranceExam: false })
+                .populate('semester', 'name academicYear')
+                .populate('instructors', 'name email')
+                .populate('department', 'name code');
+
+            // console.log('Fetched all courses:', courses);
+            res.json(courses);
+        } catch (error) {
+            next(this.handleError(error, 'fetching all courses'));
+        }
+    }
     async getCourse(req, res, next) {
         try {
             const course = await Course.findById(req.params.id)

@@ -6,6 +6,7 @@ const router = express.Router();
 
 // Routes for Course operations
 router.get('/', courseController.getAllCourses);
+router.get('/not-entrance', courseController.getAllNotEntranceCourses);
 router.get('/:id', authenticate, courseController.getCourse);
 router.post('/',
     //  authenticate, authorizeRoles(['admin', 'teacher']), 
