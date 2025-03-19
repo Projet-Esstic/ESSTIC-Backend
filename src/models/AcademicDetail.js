@@ -21,7 +21,7 @@ const courseSchema = new mongoose.Schema({
     // Reference to the Semester model; applicable only for student courses.
     module: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'AcademicDetail.module',
+        ref: 'AcademicDetail',
         required: function () {
             return this.isEntranceExam;
         }
@@ -105,7 +105,7 @@ const moduleSchema = new mongoose.Schema({
     // Reference to the Semester model; applicable only for student courses.
     semester: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Semester',
+        ref: 'AcademicDetail',
         required: true
     },
     // Department structure changes based on isEntranceExam
@@ -126,7 +126,7 @@ const moduleSchema = new mongoose.Schema({
         validate: {
             validator: function (departments) {
                 return departments.length > 0 &&
-                    departments.every(dep => dep.departmentInfo && dep.coefficient);
+                    departments.every(dep => dep.departmentInfo && dep.credit);
             },
             message: 'module must have departments with credit'
         }
@@ -185,4 +185,5 @@ const AcademicDetailSchema = new mongoose.Schema({
 AcademicDetailSchema.index({ level: 1, year: 1 }, { unique: true }); // Ensures a level cannot have duplicate academic years
 
 const AcademicDetail = mongoose.model('AcademicDetail', AcademicDetailSchema);
+// const Semester = mongoose.model('AcademicSemesters', semesterSchema);
 export default AcademicDetail;

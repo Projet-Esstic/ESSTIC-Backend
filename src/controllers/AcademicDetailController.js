@@ -96,183 +96,6 @@ export const duplicateLastAcademicDetail = async (req, res) => {
     }
 };
 
-
-// Courses
-
-// Create a new course within a given AcademicDetail
-export const createCourse = async (req, res) => {
-    try {
-        const { level, year } = req.params;
-        const academicDetail = await AcademicDetail.findOne({ level, year });
-
-        if (!academicDetail) {
-            return res.status(404).json({ message: 'Academic detail not found' });
-        }
-
-        // Remove _id if it's provided
-        delete req.body._id;
-
-        // Handle department data based on isEntranceExam
-        // if (req.body.isEntranceExam) {
-        // For entrance exams, expect an array of departments with coefficients
-        if (!Array.isArray(req.body.department)) {
-            return res.status(400).json({
-                message: 'For entrance exams, department must be an array of objects with departmentInfo and coefficient'
-            });
-        }
-
-        // Format each department entry
-        req.body.department = req.body.department.map(dep => ({
-            departmentInfo: dep.departmentInfo._id || dep.departmentInfo,
-            coefficient: dep.coefficient
-        }));
-        // } else {
-        //     // For regular courses, convert to array format
-        //     if (!Array.isArray(req.body.department)) {
-        //         req.body.department = [{ departmentInfo: new mongoose.Types.ObjectId(req.body.department) }];
-        //     } else {
-        //         console.log("req.body.department", req.body.department)
-        //         // req.body.department = req.body.department.map(departmentId => new mongoose.Types.ObjectId(departmentId));
-        //         req.body.department = req.body.department.map(departmentId =>
-        //         ({
-        //             "departmentInfo": new mongoose.Types.ObjectId(departmentId.departmentInfo)
-        //         }));
-        //     }
-        // }
-
-        // Add the new course to the courses array of the academic detail
-        academicDetail.courses.push(req.body);
-        await academicDetail.save();
-
-        res.status(201).json({ message: 'Course created successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error creating course', error: err.message });
-    }
-};
-
-// Get all courses for a given AcademicDetail with optional filters
-export const getAllCourses = async (req, res) => {
-    try {
-
-        const { isActive, isEntranceExam } = req.query;
-        const { level, year } = req.params;
-
-        const academicDetail = await AcademicDetail.findOne({ level, year });
-        if (!academicDetail) {
-            return res.status(404).json({ message: 'Academic detail not found' });
-        }
-
-        // Apply filters to the courses array
-        let filteredCourses = academicDetail.courses;
-        if (isActive !== undefined) {
-            filteredCourses = filteredCourses.filter(course => course.isActive === (isActive === 'true'));
-        }
-        if (isEntranceExam !== undefined) {
-            filteredCourses = filteredCourses.filter(course => course.isEntranceExam === (isEntranceExam === 'true'));
-        }
-
-        res.status(200).json({ courses: filteredCourses });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error fetching courses', error: err.message });
-    }
-};
-
-// Get a course by ID or courseCode
-export const getCourseById = async (req, res) => {
-    try {
-        const { courseId, level, year } = req.params;
-
-        const academicDetail = await AcademicDetail.findOne({ level, year });
-        if (!academicDetail) {
-            return res.status(404).json({ message: 'Academic detail not found' });
-        }
-
-        // Find the course by ID or courseCode
-        const course = academicDetail.courses.find(c => c._id.toString() === courseId || c.courseCode === courseId);
-        if (!course) {
-            return res.status(404).json({ message: 'Course not found' });
-        }
-
-        res.status(200).json({ course });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error fetching course', error: err.message });
-    }
-};
-
-// Update a course
-export const updateCourse = async (req, res) => {
-    try {
-        const { academicDetailId, courseId } = req.params;
-        const { courseCode, courseName, description, coefficient, isActive, module, instructors, department, isEntranceExam } = req.body;
-
-        // Find the academic detail by ID
-        const academicDetail = await AcademicDetail.findById(academicDetailId);
-        if (!academicDetail) {
-            return res.status(404).json({ message: 'Academic detail not found' });
-        }
-
-        // Find the course by ID
-        const course = academicDetail.courses.find(c => c._id.toString() === courseId);
-        if (!course) {
-            return res.status(404).json({ message: 'Course not found' });
-        }
-
-        // Update the course properties
-        course.courseCode = courseCode || course.courseCode;
-        course.courseName = courseName || course.courseName;
-        course.description = description || course.description;
-        course.coefficient = coefficient || course.coefficient;
-        course.isActive = isActive !== undefined ? isActive : course.isActive;
-        course.module = module || course.module;
-        course.instructors = instructors || course.instructors;
-        course.department = department || course.department;
-        course.isEntranceExam = isEntranceExam !== undefined ? isEntranceExam : course.isEntranceExam;
-
-        await academicDetail.save();
-
-        res.status(200).json({ message: 'Course updated successfully', course });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error updating course', error: err.message });
-    }
-};
-
-// Delete a course (soft or hard delete)
-export const deleteCourse = async (req, res) => {
-    try {
-        const { academicDetailId, courseId } = req.params;
-        const { hardDelete } = req.query; // If 'true', perform hard delete
-        const { level, year } = req.params;
-        const academicDetail = await AcademicDetail.findOne({ level, year });
-        if (!academicDetail) {
-            return res.status(404).json({ message: 'Academic detail not found' });
-        }
-
-        // Find the course by ID
-        const courseIndex = academicDetail.courses.findIndex(c => c._id.toString() === courseId);
-        if (courseIndex === -1) {
-            return res.status(404).json({ message: 'Course not found' });
-        }
-
-        if (hardDelete === 'true') {
-            // Perform hard delete
-            academicDetail.courses.splice(courseIndex, 1);
-        } else {
-            // Perform soft delete (set isActive to false)
-            academicDetail.courses[courseIndex].isActive = false;
-        }
-
-        await academicDetail.save();
-        res.status(200).json({ message: `Course ${hardDelete === 'true' ? 'hard' : 'soft'} deleted successfully` });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error deleting course', error: err.message });
-    }
-};
-
 // Semester
 export const createSemester = async (req, res) => {
     try {
@@ -379,8 +202,8 @@ export const deleteSemester = async (req, res) => {
 // module in a given year and level
 export const createModule = async (req, res) => {
     try {
-        const { level, year, moduleCode, moduleUnit, description, isActive, semester, department } = req.body;
-
+        const { level, year } = req.params;
+        const { moduleCode, moduleUnit, description, isActive, semester, department } = req.body;
         const academicDetail = await AcademicDetail.findOne({ level, year });
         if (!academicDetail) {
             return res.status(404).json({ message: 'Academic year and level not found' });
@@ -391,7 +214,7 @@ export const createModule = async (req, res) => {
             moduleUnit,
             description,
             isActive,
-            semester: new mongoose.Types.ObjectId(semester),
+            semester: semester,
             department: department.map(dep => ({
                 departmentInfo: new mongoose.Types.ObjectId(dep.departmentInfo),
                 credit: dep.credit
@@ -488,6 +311,135 @@ export const deleteModule = async (req, res) => {
         await academicDetail.save();
 
         res.status(200).json({ message: 'Module deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Courses
+export const createCourse = async (req, res) => {
+    const { level, year } = req.params; // From route params
+    const { courseCode, courseName, description, isEntranceExam, department, module, instructors } = req.body;
+
+    try {
+        // Find the academic detail by level and year
+        const academicDetail = await AcademicDetail.findOne({ level, year });
+        if (!academicDetail) {
+            return res.status(404).json({ message: 'Academic Detail not found for this level and year' });
+        }
+
+        // Create the new course object
+        const newCourse = {
+            courseCode,
+            courseName,
+            description,
+            isEntranceExam,
+            department,
+            module,
+            instructors
+        };
+
+        // Push the new course to the courses array of the academic detail
+        academicDetail.courses.push(newCourse);
+        await academicDetail.save();
+
+        res.status(201).json({ message: 'Course created successfully', course: newCourse });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAllCourses = async (req, res) => {
+    const { level, year } = req.params;
+
+    try {
+        // Find the academic detail by level and year
+        const academicDetail = await AcademicDetail.findOne({ level, year }).populate('courses.department.departmentInfo')
+        .populate('courses.instructors');
+        if (!academicDetail) {
+            return res.status(404).json({ message: 'Academic Detail not found' });
+        }
+
+        res.status(200).json({ courses: academicDetail.courses });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getCourseByCode = async (req, res) => {
+    const { level, year, courseCode } = req.params;
+
+    try {
+        // Find the academic detail by level and year
+        const academicDetail = await AcademicDetail.findOne({ level, year }).populate('courses');
+        if (!academicDetail) {
+            return res.status(404).json({ message: 'Academic Detail not found' });
+        }
+
+        // Find the course by course code
+        const course = academicDetail.courses.find(course => course.courseCode === courseCode);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        res.status(200).json({ course });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updateCourse = async (req, res) => {
+    const { level, year, courseCode } = req.params;
+    const { courseName, description, isEntranceExam, department, module, instructors } = req.body;
+
+    try {
+        // Find the academic detail by level and year
+        const academicDetail = await AcademicDetail.findOne({ level, year }).populate('courses');
+        if (!academicDetail) {
+            return res.status(404).json({ message: 'Academic Detail not found' });
+        }
+
+        // Find the course by course code
+        const courseIndex = academicDetail.courses.findIndex(course => course.courseCode === courseCode);
+        if (courseIndex === -1) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        // Update the course details
+        academicDetail.courses[courseIndex] = {
+            ...academicDetail.courses[courseIndex],
+            courseName,
+            description,
+            isEntranceExam,
+            department,
+            module,
+            instructors
+        };
+
+        // Save the updated academic detail
+        await academicDetail.save();
+
+        res.status(200).json({ message: 'Course updated successfully', course: academicDetail.courses[courseIndex] });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteCourse = async (req, res) => {
+    const { level, year, courseCode } = req.params;
+
+    try {
+        // Find the academic detail by level and year
+        const academicDetail = await AcademicDetail.findOne({ level, year });
+        if (!academicDetail) {
+            return res.status(404).json({ message: 'Academic Detail not found' });
+        }
+
+        // Remove the course from the courses array
+        academicDetail.courses = academicDetail.courses.filter(course => course.courseCode !== courseCode);
+        await academicDetail.save();
+
+        res.status(200).json({ message: 'Course deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
