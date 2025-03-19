@@ -14,13 +14,6 @@ const courseSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    coefficient: {
-        type: Number,
-        required: function () {
-            return !this.isEntranceExam;
-        },
-        min: [1, 'Credit hours must be at least 1']
-    },
     isActive: {
         type: Boolean,
         default: true // Marks if the department is still active
@@ -30,7 +23,7 @@ const courseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AcademicDetail.module',
         required: function () {
-            return !this.isEntranceExam;
+            return this.isEntranceExam;
         }
     },
     // Multiple instructors allowed but not required initially.
@@ -94,8 +87,9 @@ const moduleSchema = new mongoose.Schema({
     moduleCode: {
         type: String,
         unique: true,
+        required: true,  // Ensure moduleCode is always provided
         trim: true
-    },
+    },    
     moduleUnit: {
         type: String,
         trim: true
@@ -148,11 +142,6 @@ const semesterSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    department: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-        required: true
-    },
     startDate: {
         type: Date,
         required: true,
@@ -175,7 +164,7 @@ const semesterSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Tracks admin or professor who created it
     }
-}, { timestamps: true });
+}, { timestamps: false });
 
 // Compound index for fast lookups
 semesterSchema.index({  name: 1, department: 1 }, { unique: true });
@@ -192,7 +181,7 @@ const AcademicDetailSchema = new mongoose.Schema({
     courses: { type: [courseSchema], require: true },
     modules: { type: [moduleSchema], require: true },
     semesters: { type: [semesterSchema], require: true },
-})
+}, { timestamps: false })
 AcademicDetailSchema.index({ level: 1, year: 1 }, { unique: true }); // Ensures a level cannot have duplicate academic years
 
 const AcademicDetail = mongoose.model('AcademicDetail', AcademicDetailSchema);
