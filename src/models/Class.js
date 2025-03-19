@@ -13,50 +13,39 @@ const classSchema = new mongoose.Schema({
     },
     academicYear: {
         type: String,
-        required: true
+        required: true,
+        match: [/^\d{4}-\d{4}$/, 'Academic year must be in format YYYY-YYYY']
     },
     level: {
-        type: Number,
+        type: String,
         required: true,
-        min: 1,
-        max: 5 // Assuming 5 years of study
+        enum: ['level_1', 'level_2', 'level_3', 'masters_1', 'masters_2', 'phd']
     },
     courses: [{
         course: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Course'
+            ref: 'Course',
+            required: true
         },
-        lecturer: {
+        teacher: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: true
         },
-        schedule: [{
-            day: {
-                type: String,
-                enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                required: true
-            },
-            startTime: {
-                type: String,
-                required: true
-            },
-            endTime: {
-                type: String,
-                required: true
-            },
-            room: {
-                type: String,
-                required: true
-            }
-        }]
+        semester: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Semester',
+            required: true
+        }
     }],
     students: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student'
     }],
-    classTeacher: {
+    classMaster: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     createdAt: {
         type: Date,
@@ -73,6 +62,27 @@ const classSchema = new mongoose.Schema({
 // Add indexes for common queries
 classSchema.index({ department: 1, academicYear: 1 });
 classSchema.index({ name: 1, academicYear: 1 }, { unique: true });
+
+// Validate that courses belong to the class's department
+classSchema.pre('save', async function(next) {
+    if (this.isModified('courses')) {
+        for (const courseAssignment of this.courses) {
+            const course = await mongoose.model('Course').findById(courseAssignment.course);
+            if (!course) {
+                throw new Error(`Course ${courseAssignment.course} not found`);
+            }
+            
+            const belongsToDepartment = course.department.some(
+                dep => dep.departmentInfo.toString() === this.department.toString()
+            );
+            
+            if (!belongsToDepartment) {
+                throw new Error(`Course ${course.courseName} does not belong to this department`);
+            }
+        }
+    }
+    next();
+});
 
 const Class = mongoose.model('Class', classSchema);
 
