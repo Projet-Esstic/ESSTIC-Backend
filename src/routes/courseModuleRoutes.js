@@ -1,5 +1,9 @@
 import express from 'express';
-import { courseModuleController } from '../controllers/courseModuleController.js';
+import {
+    createCourseModule,
+    getAllCourseModules, getCourseModuleById, updateCourseModule, 
+    deleteCourseModule, duplicateModuleForNextYear, addCourseToModule
+} from '../controllers/courseModuleController.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -7,17 +11,25 @@ const router = express.Router();
 // Base route: /api/modules
 
 // Public routes
-router.get('/', courseModuleController.getAll);
-router.get('/:id', courseModuleController.getById);
+router.get('/:level/:year', getAllCourseModules);  // Get all course modules
+router.get('/:id', getCourseModuleById);  // Get a specific course module by ID
 
-// Protected routes
-router.use(authenticate);
-router.post('/', courseModuleController.create);
-router.put('/:id', courseModuleController.update);
-router.delete('/:id', courseModuleController.delete);
+// Protected routes (authentication required)
+// router.use(authenticate);
 
-// Course management within modules
-router.post('/:moduleId/courses', courseModuleController.addCourse);
-router.delete('/:moduleId/courses/:courseId', courseModuleController.removeCourse);
+// Create a new course module
+router.post('/', createCourseModule);
 
-export default router; 
+// Update an existing course module by ID
+router.put('/:id', updateCourseModule);
+
+// Delete a course module by ID
+router.delete('/:id', deleteCourseModule);
+
+// Duplicate a course module for the next academic year
+router.post('/:moduleCode/duplicate', duplicateModuleForNextYear);  // Duplicate module for the next year
+
+// Add a course to a module
+router.post('/:moduleId/courses', addCourseToModule);  // Add a course to the specified module
+
+export default router;

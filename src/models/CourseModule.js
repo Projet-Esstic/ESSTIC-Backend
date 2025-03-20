@@ -6,7 +6,7 @@ const courseModuleSchema = new mongoose.Schema({
         unique: true,
         required: true,  // Ensure moduleCode is always provided
         trim: true
-    },    
+    },
     moduleUnit: {
         type: String,
         trim: true
@@ -45,7 +45,7 @@ const courseModuleSchema = new mongoose.Schema({
                 return departments.length > 0 &&
                     departments.every(dep => dep.departmentInfo && dep.credit);
             },
-            message: 'module must have departments with credit'
+            message: 'Module must have departments with credit'
         }
     },
     level: {
@@ -56,7 +56,6 @@ const courseModuleSchema = new mongoose.Schema({
     year: {
         type: String,
         required: true,
-        unique: false,
         match: [/^\d{4}-\d{4}$/, 'Academic year must be in format YYYY-YYYY'],
         trim: true
     },
@@ -66,9 +65,10 @@ const courseModuleSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-
-
+courseModuleSchema.virtual('fullDescription').get(function() {
+   return `${this.moduleCode}: ${this.description}`;
+});
 
 const CourseModule = mongoose.model('CourseModule', courseModuleSchema);
 
-export default CourseModule; 
+export default CourseModule;
