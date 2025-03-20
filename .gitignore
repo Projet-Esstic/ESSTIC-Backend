@@ -130,4 +130,5 @@ dist
 .pnp.*
 
 data_test*.json
+test_data/
 .idea
