@@ -28,6 +28,10 @@ const semesterSchema = new mongoose.Schema({
             message: 'Start date must be before end date.'
         }
     },
+    modules: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CourseModule',
+    }],
     endDate: {
         type: Date,
         required: true,

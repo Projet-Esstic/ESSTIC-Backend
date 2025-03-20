@@ -88,7 +88,7 @@ const courseSchema = new mongoose.Schema({
         },
         total: {
             type: Number,
-            default: function() {
+            default: function () {
                 return this.CM + this.TP + this.TPE;
             }
         }
@@ -97,8 +97,8 @@ const courseSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Pre-save middleware to validate department structure
-courseSchema.pre('save', function (next) {
+// Pre-save middleware to validate department structure and to check if the course exists in the referenced module's courses array
+courseSchema.pre('save', async function (next) {
     if (this.isEntranceExam) {
         // Validate that each department has both departmentInfo and coefficient
         const isValid = this.department.every(dep =>
@@ -106,6 +106,79 @@ courseSchema.pre('save', function (next) {
         );
         if (!isValid) {
             next(new Error('Entrance exam courses must have departments with valid coefficients'));
+        }
+    }
+    if (this.module) {
+        try {
+            const CourseModule = mongoose.model('CourseModule');
+            const module = await CourseModule.findById(this.module);
+            if (module) {
+                if (!module.courses) 
+                    module.courses = []
+                console.log(module.courses)
+                if (!module.courses.includes(this._id)) {
+                    module.courses.push(this._id);
+                    await module.save();
+                }
+            }
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
+
+
+// Pre-update middleware to handle module changes
+courseSchema.pre('findOneAndUpdate', async function (next) {
+    const update = this.getUpdate();
+    if (!update) return next();
+
+    const CourseModule = mongoose.model('CourseModule');
+    const existingCourse = await this.model.findOne(this.getQuery());
+
+    if (existingCourse && update.module && existingCourse.module?.toString() !== update.module.toString()) {
+        try {
+            // Remove from old module
+            if (existingCourse.module) {
+                const oldModule = await CourseModule.findById(existingCourse.module);
+                if (oldModule) {
+                    oldModule.courses = oldModule.courses.filter(courseId => courseId.toString() !== existingCourse._id.toString());
+                    await oldModule.save();
+                }
+            }
+
+            // Add to new module
+            if (update.module) {
+                const newModule = await CourseModule.findById(update.module);
+                if (newModule) {
+                    if (!newModule.courses.includes(existingCourse._id)) {
+                        newModule.courses.push(existingCourse._id);
+                        await newModule.save();
+                    }
+                }
+            }
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
+
+// Pre-remove middleware to handle deletion
+courseSchema.pre('findOneAndDelete', async function (next) {
+    const course = await this.model.findOne(this.getQuery());
+
+    if (course && course.module) {
+        try {
+            const CourseModule = mongoose.model('CourseModule');
+            const module = await CourseModule.findById(course.module);
+            if (module) {
+                module.courses = module.courses.filter(courseId => courseId.toString() !== course._id.toString());
+                await module.save();
+            }
+        } catch (error) {
+            return next(error);
         }
     }
     next();

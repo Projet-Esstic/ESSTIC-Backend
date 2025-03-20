@@ -22,9 +22,13 @@ const courseModuleSchema = new mongoose.Schema({
     // Reference to the Semester model; applicable only for student courses.
     semester: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'AcademicDetail',
+        ref: 'Semester',
         required: true
     },
+    courses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+    }],
     // Department structure changes based on isEntranceExam
     department: {
         type: [{
@@ -67,6 +71,39 @@ const courseModuleSchema = new mongoose.Schema({
 
 courseModuleSchema.virtual('fullDescription').get(function() {
    return `${this.moduleCode}: ${this.description}`;
+});
+
+// Middleware to handle adding module to Semester
+courseModuleSchema.post('save', async function (doc) {
+    await mongoose.model('Semester').findByIdAndUpdate(doc.semester, {
+        $addToSet: { modules: doc._id }
+    });
+});
+
+// Middleware to handle updating semester reference
+courseModuleSchema.pre('findOneAndUpdate', async function (next) {
+    const update = this.getUpdate();
+    if (update.semester) {
+        const doc = await this.model.findOne(this.getQuery());
+        if (doc && doc.semester.toString() !== update.semester.toString()) {
+            await mongoose.model('Semester').findByIdAndUpdate(doc.semester, {
+                $pull: { modules: doc._id }
+            });
+            await mongoose.model('Semester').findByIdAndUpdate(update.semester, {
+                $addToSet: { modules: doc._id }
+            });
+        }
+    }
+    next();
+});
+
+// Middleware to remove module reference from Semester on delete
+courseModuleSchema.post('findOneAndDelete', async function (doc) {
+    if (doc) {
+        await mongoose.model('Semester').findByIdAndUpdate(doc.semester, {
+            $pull: { modules: doc._id }
+        });
+    }
 });
 
 const CourseModule = mongoose.model('CourseModule', courseModuleSchema);

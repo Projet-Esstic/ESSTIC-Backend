@@ -12,7 +12,7 @@ class SemesterController extends BaseController {
     // Fetch all semesters with optional filters for level and academic year
     async getAllSemesters(req, res, next) {
         try {
-            const {  academicYear, level } = req.params;
+            const { academicYear, level } = req.params;
             const query = {};
 
             if (academicYear) {
@@ -22,9 +22,23 @@ class SemesterController extends BaseController {
                 query.level = level;
             }
 
+            // const semesters = await Semester.find({ level, academicYear })
+            //     .populate('modules','moduleCode courses department')
+            //     .populate('modules.courses','courseCode department')
+            //     .populate('modules.department.departmentInfo',"name")
+            //     .populate('modules.courses.department.departmentInfo',"name")
+            //     .populate('createdBy', 'firstName lastName');
             const semesters = await Semester.find({ level, academicYear })
+                .populate({
+                    path: 'modules',
+                    select: 'moduleCode courses department',
+                    populate: [
+                        { path: 'courses', select: 'courseCode department' },
+                        { path: 'department.departmentInfo', select: 'name' }
+                    ]
+                })
                 .populate('createdBy', 'firstName lastName');
-
+                
             res.json(semesters);
         } catch (error) {
             next(this.handleError(error, 'fetching all semesters'));

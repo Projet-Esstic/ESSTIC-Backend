@@ -44,7 +44,7 @@ export const getCourseModuleById = async (req, res) => {
 // Update CourseModule by ID
 export const updateCourseModule = async (req, res) => {
     try {
-        const updatedModule = await CourseModule.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updatedModule = await CourseModule.findOneAndUpdate( { _id: req.params.id }, req.body, { new: true });
         if (!updatedModule) {
             return res.status(404).json({ message: 'CourseModule not found' });
         }
@@ -57,7 +57,7 @@ export const updateCourseModule = async (req, res) => {
 // Delete CourseModule by ID
 export const deleteCourseModule = async (req, res) => {
     try {
-        const deletedModule = await CourseModule.findByIdAndDelete(req.params.id);
+        const deletedModule = await CourseModule.findOneAndDelete({ _id: req.params.id });
         if (!deletedModule) {
             return res.status(404).json({ message: 'CourseModule not found' });
         }
