@@ -13,10 +13,10 @@ const semesterSchema = new mongoose.Schema({
         match: [/^\d{4}-\d{4}$/, 'Academic year must be in format YYYY-YYYY'],
         trim: true
     },
-    department: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-        required: true
+    level: {
+        type: String,
+        required: true,
+        enum: ['level_1', 'level_2', 'level_3', 'masters_1', 'masters_2', 'phd']
     },
     startDate: {
         type: Date,
@@ -42,16 +42,9 @@ const semesterSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Remove the courses array and replace with a virtual
-semesterSchema.virtual('courses', {
-    ref: 'Course',
-    localField: '_id',
-    foreignField: 'semester',
-    justOne: false
-});
 
 // Compound index for fast lookups
-semesterSchema.index({ academicYear: 1, name: 1, department: 1 }, { unique: true });
+semesterSchema.index({ academicYear: 1, name: 1, level: 1 }, { unique: true });
 
 const Semester = mongoose.model('Semester', semesterSchema);
 export default Semester;

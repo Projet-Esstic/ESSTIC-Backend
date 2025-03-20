@@ -3,85 +3,71 @@ import mongoose from 'mongoose';
 const courseModuleSchema = new mongoose.Schema({
     moduleCode: {
         type: String,
-        required: true,
         unique: true,
+        required: true,  // Ensure moduleCode is always provided
         trim: true
-    },
-    moduleName: {
+    },    
+    moduleUnit: {
         type: String,
-        required: true,
         trim: true
     },
-    courses: [{
-        course: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Course',
-            required: true
-        },
-        hours: {
-            CM: {
-                type: Number,
-                default: 0,
-                min: 0
-            },
-            TP: {
-                type: Number,
-                default: 0,
-                min: 0
-            },
-            TPE: {
-                type: Number,
-                default: 0,
-                min: 0
-            },
-            total: {
-                type: Number,
-                default: function() {
-                    return this.CM + this.TP + this.TPE;
-                }
-            }
-        }
-    }],
-    credits: {
-        type: Number,
-        required: true,
-        min: 0
+    description: {
+        type: String,
+        trim: true
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    // Reference to the Semester model; applicable only for student courses.
     semester: {
-        type: Number,
-        required: true,
-        enum: [1, 2],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AcademicDetail',
+        required: true
+    },
+    // Department structure changes based on isEntranceExam
+    department: {
+        type: [{
+            _id: false, // Disable automatic _id for subdocuments
+            departmentInfo: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Department',
+                required: true
+            },
+            credit: {
+                type: Number,
+                required: true,
+                min: [1, 'Credit must be at least 1']
+            },
+        }, { _id: false }],
         validate: {
-            validator: Number.isInteger,
-            message: '{VALUE} is not an integer value'
+            validator: function (departments) {
+                return departments.length > 0 &&
+                    departments.every(dep => dep.departmentInfo && dep.credit);
+            },
+            message: 'module must have departments with credit'
         }
     },
     level: {
         type: String,
         required: true,
         enum: ['level_1', 'level_2', 'level_3', 'masters_1', 'masters_2', 'phd']
-    }
+    },
+    year: {
+        type: String,
+        required: true,
+        unique: false,
+        match: [/^\d{4}-\d{4}$/, 'Academic year must be in format YYYY-YYYY'],
+        trim: true
+    },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
 
-// Virtual for total hours in the module
-courseModuleSchema.virtual('totalHours').get(function() {
-    if (!this.populated('courses')) {
-        return 0;
-    }
-    return this.courses.reduce((total, course) => total + course.hours.total, 0);
-});
 
-// Pre-save middleware to validate total credits
-courseModuleSchema.pre('save', function(next) {
-    if (this.credits < 0) {
-        next(new Error('Credits cannot be negative'));
-    }
-    next();
-});
+
 
 const CourseModule = mongoose.model('CourseModule', courseModuleSchema);
 

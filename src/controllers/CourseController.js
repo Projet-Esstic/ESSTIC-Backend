@@ -11,18 +11,17 @@ class CourseController extends BaseController {
         this.createCourse = this.createCourse.bind(this);
         this.updateCourse = this.updateCourse.bind(this);
         this.deleteCourse = this.deleteCourse.bind(this);
-
+        this.duplicateCourses = this.duplicateCourses.bind(this);
     }
 
     async getAllCourses(req, res, next) {
         try {
-            // console.log('Fetching all courses...');
-            const courses = await Course.find({})
-                .populate('semester', 'name academicYear')
+            const { level, year } = req.params;
+            const courses = await Course.find({ level, year })
+                .populate('module', 'name')
                 .populate('instructors', 'name email')
-                .populate('department', 'name code');
-
-            // console.log('Fetched all courses:', courses);
+                .populate('department.departmentInfo', 'name code');
+            console.log(courses);
             res.json(courses);
         } catch (error) {
             next(this.handleError(error, 'fetching all courses'));
@@ -31,27 +30,25 @@ class CourseController extends BaseController {
 
     async getAllNotEntranceCourses(req, res, next) {
         try {
-            // console.log('Fetching all courses...');
-            const courses = await Course.find({ isEntranceExam: false })
-                .populate('semester', 'name academicYear')
+            const { level, year } = req.params;
+            const courses = await Course.find({ level, year, isEntranceExam: false })
+                .populate('module', 'name')
                 .populate('instructors', 'name email')
-                .populate('department', 'name code');
-
-            // console.log('Fetched all courses:', courses);
+                .populate('department.departmentInfo', 'name code');
             res.json(courses);
         } catch (error) {
-            next(this.handleError(error, 'fetching all courses'));
+            next(this.handleError(error, 'fetching non-entrance exam courses'));
         }
     }
+
     async getCourse(req, res, next) {
         try {
-            const course = await Course.findById(req.params.id)
-                .populate('semester')
+            const { id, level, year } = req.params;
+            const course = await Course.findOne({ _id: id, level, year })
+                .populate('module')
                 .populate('instructors', 'name email')
-                .populate('department', 'name');
-            if (!course) {
-                throw createError(404, 'Course not found');
-            }
+                .populate('department.departmentInfo', 'name');
+            if (!course) throw createError(404, 'Course not found');
             res.json(course);
         } catch (error) {
             next(this.handleError(error, 'fetching course'));
@@ -60,74 +57,48 @@ class CourseController extends BaseController {
 
     async createCourse(req, res, next) {
         try {
-            console.log('Received course data:', req.body);
+            const { level, year } = req.params;
+            const courseData = { ...req.body, level, year };
+            console.log(courseData);
+            delete courseData._id; // Ensure no overriding of existing course IDs
 
-            // Remove _id if it's provided
-            delete req.body._id;
-
-            // Handle department data based on isEntranceExam
-            if (req.body.isEntranceExam) {
-                // For entrance exams, expect an array of departments with coefficients
-                if (!Array.isArray(req.body.department)) {
+            if (courseData.isEntranceExam) {
+                if (!Array.isArray(courseData.department)) {
                     return res.status(400).json({
-                        message: 'For entrance exams, department must be an array of objects with departmentInfo and coefficient'
+                        message: 'For entrance exams, department must be an array with departmentInfo and coefficient'
                     });
                 }
-
-                // Format each department entry
-                req.body.department = req.body.department.map(dep => ({
+                courseData.department = courseData.department.map(dep => ({
                     departmentInfo: dep.departmentInfo._id || dep.departmentInfo,
                     coefficient: dep.coefficient
                 }));
-            } else {
-                // For regular courses, convert to array format
-                if (!Array.isArray(req.body.department)) {
-                    req.body.department = [{ departmentInfo: new mongoose.Types.ObjectId(req.body.department) }];
-                } else {
-                    console.log("req.body.department", req.body.department)
-                    // req.body.department = req.body.department.map(departmentId => new mongoose.Types.ObjectId(departmentId));
-                    req.body.department = req.body.department.map(departmentId =>
-                    ({
-                        "departmentInfo": new mongoose.Types.ObjectId(departmentId.departmentInfo)
-                    }));
-                }
             }
 
-            const newCourse = new Course(req.body);
+            const newCourse = new Course(courseData);
+            console.log(newCourse);
             const savedCourse = await newCourse.save();
-            console.log('Created new course:', savedCourse);
 
-            // Populate the department details for the response
             const populatedCourse = await Course.findById(savedCourse._id)
                 .populate('department.departmentInfo', 'name code')
-                .populate('semester', 'name academicYear')
+                .populate('module', 'name')
                 .populate('instructors', 'name email');
 
             res.status(201).json(populatedCourse);
         } catch (error) {
-            console.error('Error creating course:', error);
-            if (error.name === 'ValidationError') {
-                res.status(400).json({
-                    message: 'Validation Error',
-                    errors: Object.values(error.errors).map(err => err.message)
-                });
-            } else if (error.code === 11000) {
-                res.status(400).json({
-                    message: 'Course code must be unique',
-                    field: Object.keys(error.keyPattern)[0]
-                });
-            } else {
-                next(error);
-            }
+            next(this.handleError(error, 'creating course'));
         }
     }
 
     async updateCourse(req, res, next) {
         try {
-            const updatedCourse = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true });
-            if (!updatedCourse) {
-                throw createError(404, 'Course not found');
-            }
+            const { id, level, year } = req.params;
+            const updatedCourse = await Course.findOneAndUpdate(
+                { _id: id, level, year },
+                req.body,
+                { new: true }
+            ).populate('module').populate('instructors', 'name email').populate('department.departmentInfo', 'name code');
+
+            if (!updatedCourse) throw createError(404, 'Course not found');
             res.json(updatedCourse);
         } catch (error) {
             next(this.handleError(error, 'updating course'));
@@ -136,15 +107,38 @@ class CourseController extends BaseController {
 
     async deleteCourse(req, res, next) {
         try {
-            const deletedCourse = await Course.findByIdAndDelete(req.params.id);
-            if (!deletedCourse) {
-                throw createError(404, 'Course not found');
-            }
+            const { id, level, year } = req.params;
+            const deletedCourse = await Course.findOneAndDelete({ _id: id, level, year });
+            if (!deletedCourse) throw createError(404, 'Course not found');
             res.status(204).send();
         } catch (error) {
             next(this.handleError(error, 'deleting course'));
         }
     }
+
+    async duplicateCourses(req, res, next) {
+        try {
+            const { prevYear, nextYear } = req.params;
+            const existingCourses = await Course.find({ year: prevYear });
+
+            if (!existingCourses.length) {
+                return res.status(404).json({ message: 'No courses found for the previous year' });
+            }
+
+            const duplicatedCourses = existingCourses.map(course => {
+                const duplicatedCourse = course.toObject();
+                delete duplicatedCourse._id; // Remove the existing ID for duplication
+                duplicatedCourse.year = nextYear; // Set the new year
+                delete duplicatedCourse.module;
+                return duplicatedCourse;
+            });
+
+            const savedCourses = await Course.insertMany(duplicatedCourses);
+            res.status(201).json({ message: 'Courses duplicated successfully', duplicatedCourses: savedCourses });
+        } catch (error) {
+            next(this.handleError(error, 'duplicating courses'));
+        }
+    }
 }
 
-export default new CourseController(); 
+export default new CourseController();
