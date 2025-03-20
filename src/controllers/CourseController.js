@@ -13,8 +13,19 @@ class CourseController extends BaseController {
         this.deleteCourse = this.deleteCourse.bind(this);
         this.duplicateCourses = this.duplicateCourses.bind(this);
     }
-
     async getAllCourses(req, res, next) {
+        try {
+            const courses = await Course.find()
+                .populate('module', 'name')
+                .populate('instructors', 'name email')
+                .populate('department.departmentInfo', 'name code');
+            console.log(courses);
+            res.json(courses);
+        } catch (error) {
+            next(this.handleError(error, 'fetching all courses'));
+        }
+    }
+    async getAllCoursesByYear(req, res, next) {
         try {
             const { level, year } = req.params;
             const courses = await Course.find({ level, year })
@@ -57,8 +68,8 @@ class CourseController extends BaseController {
 
     async createCourse(req, res, next) {
         try {
-            const { level, year } = req.params;
-            const courseData = { ...req.body, level, year };
+            // const { level, year } = req.params;
+            const courseData = { ...req.body };
             console.log(courseData);
             delete courseData._id; // Ensure no overriding of existing course IDs
 
@@ -91,9 +102,9 @@ class CourseController extends BaseController {
 
     async updateCourse(req, res, next) {
         try {
-            const { id, level, year } = req.params;
+            const { id, } = req.params;
             const updatedCourse = await Course.findOneAndUpdate(
-                { _id: id, level, year },
+                { _id: id},
                 req.body,
                 { new: true }
             ).populate('module').populate('instructors', 'name email').populate('department.departmentInfo', 'name code');
@@ -107,8 +118,8 @@ class CourseController extends BaseController {
 
     async deleteCourse(req, res, next) {
         try {
-            const { id, level, year } = req.params;
-            const deletedCourse = await Course.findOneAndDelete({ _id: id, level, year });
+            const { id} = req.params;
+            const deletedCourse = await Course.findOneAndDelete({ _id: id });
             if (!deletedCourse) throw createError(404, 'Course not found');
             res.status(204).send();
         } catch (error) {
