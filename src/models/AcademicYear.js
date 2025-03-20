@@ -176,6 +176,11 @@ const academicYearSchema = new mongoose.Schema({
     year: { type: String, required: true, unique: false },
     level: { type: String, required: true, unique: false },
     department: { type: String, required: true, unique: false },
+    classes: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: true
+    },
     semesters: { type: [semesterSchema], required: true },
 }, { timestamps: true });
 
