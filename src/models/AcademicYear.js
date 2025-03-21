@@ -148,7 +148,7 @@ semesterSchema.pre('save', async function (next) {
         this.modules.forEach(module => {
             if (module.isActive) {
                 totalPoints += module.moduleAverage;
-                
+
                 // Add credits if moduleAverage > 10
                 if (module.moduleAverage > 10 && creditMap.has(module.moduleInfo.toString())) {
                     totalCredits += creditMap.get(module.moduleInfo.toString());
@@ -175,11 +175,13 @@ const academicYearSchema = new mongoose.Schema({
     },
     year: { type: String, required: true, unique: false },
     level: { type: String, required: true, unique: false },
-    department: { type: String, required: true, unique: false },
-    classes: {
+    department: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',
-        required: true
+    },
+    classes: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class',
     },
     semesters: { type: [semesterSchema], required: true },
 }, { timestamps: true });

@@ -117,3 +117,31 @@ export const addCourseToModule = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+// Add multiple course modules
+export const addMultipleModules = async (req, res) => {
+    try {
+        const modules = req.body; // Expecting an array of modules in the request body
+    
+        if (!Array.isArray(modules) || modules.length === 0) {
+            return res.status(400).json({ message: 'Invalid input: Expecting a non-empty array of modules' });
+        }
+    
+        const insertedModules = [];
+    
+        for (const moduleData of modules) {
+            const newModule = new CourseModule(moduleData);
+            await newModule.save(); // Saving each module one by one
+            insertedModules.push(newModule);
+        }
+    
+        res.status(201).json({
+            message: 'Modules added successfully',
+            data: insertedModules
+        });
+    } catch (error) {
+        console.error('Error adding modules:', error);
+        res.status(500).json({ message: 'Failed to add modules', error: error.message });
+    }
+    
+};

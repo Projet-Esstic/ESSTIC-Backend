@@ -1,7 +1,7 @@
 import express from 'express';
 // import studentController from '../controllers/StudentController.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
-import studentController, { studentBrief, registerStudent } from '../controllers/StudentController.js';
+import studentController, { studentBrief, registerStudent,addStudentsArrayJson } from '../controllers/StudentController.js';
 // import authenticate from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -43,7 +43,7 @@ router.post(
 router.post('/brief/:id', 
   //authenticate, 
   studentBrief)
-// router.post('/add', addStudent)
+router.post('/add-students', addStudentsArrayJson)
 // router.post('/register/', registerStudent)
 
 export default router; 

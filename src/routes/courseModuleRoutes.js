@@ -2,7 +2,8 @@ import express from 'express';
 import {
     createCourseModule,
     getAllCourseModules, getCourseModuleById, updateCourseModule, 
-    deleteCourseModule, duplicateModuleForNextYear, addCourseToModule
+    deleteCourseModule, duplicateModuleForNextYear, addCourseToModule,
+    addMultipleModules
 } from '../controllers/courseModuleController.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
@@ -30,6 +31,8 @@ router.delete('/:id', deleteCourseModule);
 router.post('/:moduleCode/duplicate', duplicateModuleForNextYear);  // Duplicate module for the next year
 
 // Add a course to a module
-router.post('/:moduleId/courses', addCourseToModule);  // Add a course to the specified module
+// router.post('/:moduleId/courses', addCourseToModule);  // Add a course to the specified module
+
+router.post('/add-multiple-modules', addMultipleModules);  
 
 export default router;

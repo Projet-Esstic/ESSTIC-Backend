@@ -2,6 +2,8 @@ import BaseController from './BaseController.js';
 import Student from '../models/Student.js';
 import User from '../models/User.js';
 import Candidate from '../models/Candidate.js';
+import Department from '../models/Departement.js';
+import {AcademicYear} from '../models/AcademicYear.js';
 import createError from 'http-errors';
 import mongoose from 'mongoose';
 import { sendStudentRegistrationEmail } from '../services/email.service.js';
@@ -298,6 +300,73 @@ export const studentBrief = async (req, res) => {
     } catch (error) {
         console.error('Error in studentBrief:', error);
         return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+// Function to add students from a JSON file
+export const addStudentsArrayJson = async (req, res) => {
+    try {
+        let jsonData = req.body
+        // Validate that jsonData is an array
+        if (!Array.isArray(jsonData)) {
+            return res.status(400).json({ message: 'Invalid JSON format. Expecting an array of students.' });
+        }
+
+        const studentsAdded = [];
+
+        for (const studentData of jsonData) {
+            const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, region, 
+                candidateId, level, departmentId, academicYearIds, classId } = studentData;
+
+            // Check if user already exists
+            let user = await User.findOne({ email });
+
+            if (!user) {
+                // Create new user
+                const password = "password123";
+                user = new User({
+                    firstName,
+                    lastName,
+                    email,
+                    password: password,
+                    phoneNumber,
+                    dateOfBirth,
+                    gender,
+                    region,
+                    roles: ['student']  // Assign student role
+                });
+                await user.save();
+            }
+
+            // Check if candidate exists
+            const candidate = await Candidate.findById(candidateId);
+
+            // Check if department exists
+            const department = await Department.findById(departmentId);
+            if (!department) {
+                console.log({ message: `Department with ID ${departmentId} not found.` });
+                continue;
+            }
+
+            // Create student record
+            const student = new Student({
+                user: user._id,
+                candidate: candidate?._id,
+                level,
+                department: department?._id,
+                academicYears: academicYearIds,
+                classes: classId || null  // Optional class field
+            });
+
+            // await student.save();
+            studentsAdded.push(student);
+        }
+
+        res.status(201).json({ message: 'Students added successfully', students: studentsAdded });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 

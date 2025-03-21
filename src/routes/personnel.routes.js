@@ -15,7 +15,7 @@ router.get('/:id', PersonnelController.getPersonnel);
 
 // Route to create a new personnel
 router.post('/register', PersonnelController.registerPersonnel);
-
+router.post('/register-multiple', PersonnelController.registerManyPersonnel);
 // Route to update personnel details (Admin only)
 router.put('/:id',  PersonnelController.updatePersonnel);
 

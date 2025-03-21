@@ -86,11 +86,15 @@ const courseSchema = new mongoose.Schema({
             default: 0,
             min: 0
         },
-        total: {
+        TGE: {
             type: Number,
-            default: function () {
-                return this.CM + this.TP + this.TPE;
-            }
+            default: 0
+            // default: function () {
+            //     console.log(this)
+            //     console.log(this.TP)
+            //     console.log(this.TPE)
+            //     return this.CM + this.TP + this.TPE;
+            // }
         }
     }
 }, {

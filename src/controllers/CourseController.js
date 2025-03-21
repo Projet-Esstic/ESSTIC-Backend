@@ -104,7 +104,7 @@ class CourseController extends BaseController {
         try {
             const { id, } = req.params;
             const updatedCourse = await Course.findOneAndUpdate(
-                { _id: id},
+                { _id: id },
                 req.body,
                 { new: true }
             ).populate('module').populate('instructors', 'name email').populate('department.departmentInfo', 'name code');
@@ -118,7 +118,7 @@ class CourseController extends BaseController {
 
     async deleteCourse(req, res, next) {
         try {
-            const { id} = req.params;
+            const { id } = req.params;
             const deletedCourse = await Course.findOneAndDelete({ _id: id });
             if (!deletedCourse) throw createError(404, 'Course not found');
             res.status(204).send();
@@ -149,6 +149,37 @@ class CourseController extends BaseController {
         } catch (error) {
             next(this.handleError(error, 'duplicating courses'));
         }
+    }
+
+    // Controller to add multiple courses
+    async addManyCourses(req, res) {
+        try {
+            const courses = req.body; // Array of courses from request body
+
+            if (!Array.isArray(courses) || courses.length === 0) {
+                return res.status(400).json({ message: "Invalid data format. Expected a non-empty array of courses." });
+            }
+
+            const insertedCourses = [];
+
+            for (const courseData of courses) {
+                const newCourse = new Course(courseData);
+                console.log(newCourse);
+                await newCourse.save(); // Save each course individually
+                insertedCourses.push(newCourse);
+            }
+
+            res.status(201).json({
+                message: "Courses added successfully!",
+                data: insertedCourses
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: "Error adding courses",
+                error: error.message
+            });
+        }
+
     }
 }
 

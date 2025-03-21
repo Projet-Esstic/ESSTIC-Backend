@@ -12,6 +12,7 @@ router.get('/:level/:year/:id', authenticate, courseController.getCourse);
 router.post('/',  courseController.createCourse);
 router.put('/:id',  courseController.updateCourse);
 router.delete('/:id', courseController.deleteCourse);
+router.post('/add-multiple-courses', courseController.addManyCourses);
 
 // Route to duplicate courses from one year to another
 router.post('/duplicate/:prevYear/:nextYear', authenticate, authorizeRoles(['admin']), courseController.duplicateCourses);

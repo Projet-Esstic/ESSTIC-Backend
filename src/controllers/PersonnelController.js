@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import os from 'os';
-import bcrypt  from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 class PersonnelController extends BaseController {
     constructor() {
@@ -39,9 +39,9 @@ class PersonnelController extends BaseController {
             // const formData = JSON.parse(req.body.formData);
             const formData = req.body
             const { email,
-                firstName, lastName, 
-                dateOfBirth, gender, phoneNumber, 
-                roles, department,salary,emergencyContact } = formData;
+                firstName, lastName,
+                dateOfBirth, gender, phoneNumber,
+                roles, department, salary, emergencyContact } = formData;
 
             // Check if the email is already registered
             const existingUser = await User.findOne({ email });
@@ -111,6 +111,107 @@ class PersonnelController extends BaseController {
 
             if (session) {
                 await session.abortTransaction();
+            }
+
+            res.status(500).json({ message: error.message || 'Internal server error' });
+        } finally {
+            if (session) {
+                session.endSession();
+            }
+        }
+    }
+
+    async registerManyPersonnel(req, res) {
+        let session = null;
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+
+            const personnelList = req.body; // Expecting an array of personnel data
+
+            if (!Array.isArray(personnelList) || personnelList.length === 0) {
+                return res.status(400).json({ message: 'Invalid input. Expected an array of personnel data.' });
+            }
+
+            const newUsers = [];
+            const newPersonnelRecords = [];
+
+            for (const formData of personnelList) {
+                const { email, firstName, lastName, dateOfBirth, gender, phoneNumber, roles, department, salary, emergencyContact } = formData;
+
+                // Check if email is already registered
+                const existingUser = await User.findOne({ email }).session(session);
+                if (existingUser) {
+                    await session.abortTransaction();
+                    session.endSession();
+                    return res.status(400).json({ message: `Email ${email} is already registered.` });
+                }
+
+                // Default password (hashed)
+                const password = "password123";
+                // const salt = await bcrypt.genSalt(10);
+                // const hashedPassword = await bcrypt.hash(password, salt);
+
+                // Create new user
+                const newUser = new User({
+                    firstName,
+                    lastName,
+                    email,
+                    password: password,
+                    phoneNumber,
+                    dateOfBirth,
+                    gender,
+                    roles: roles || ['teacher'] // Default role is 'teacher'
+                });
+
+                const savedUser = await newUser.save({ session });
+                newUsers.push(savedUser);
+
+                // Handle document uploads
+                const documents = {};
+                if (req.files) {
+                    const documentTypes = ['profileImage', 'cv', 'idCard', 'other'];
+                    for (const type of documentTypes) {
+                        if (req.files[type] && req.files[type][0]) {
+                            const file = req.files[type][0];
+                            documents[type] = {
+                                path: file.path,
+                                originalName: file.originalname,
+                                mimeType: file.mimetype,
+                                size: file.size,
+                                uploadedAt: new Date(),
+                            };
+                        }
+                    }
+                }
+
+                // Create new personnel record
+                const newPersonnel = new Personnel({
+                    user: savedUser._id,
+                    documents,
+                    department,
+                    salary,
+                    emergencyContact
+                });
+
+                const savedPersonnel = await newPersonnel.save({ session });
+                newPersonnelRecords.push(savedPersonnel);
+            }
+
+            await session.commitTransaction();
+            session.endSession();
+
+            res.status(201).json({
+                message: 'Personnel registered successfully',
+                users: newUsers,
+                personnel: newPersonnelRecords,
+            });
+        } catch (error) {
+            console.error('Batch registration error:', error);
+
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
             }
 
             res.status(500).json({ message: error.message || 'Internal server error' });
@@ -237,7 +338,7 @@ class PersonnelController extends BaseController {
         try {
             const personnel = await Personnel.find().populate('user');
             // console.log(personnel);
-            
+
             res.json(personnel);
         } catch (error) {
             next(this.handleError(error, 'fetching all personnel'));
@@ -299,54 +400,54 @@ class PersonnelController extends BaseController {
         try {
             const { id } = req.params;
             const { schedule } = req.body; // { class: 'Math', date: '2023-10-10', time: '10:00 AM', resource: 'Room 101' }
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.schedule.push(schedule);
             await personnel.save();
-    
+
             res.status(201).json({ message: 'Schedule created successfully', schedule });
         } catch (error) {
             next(this.handleError(error, 'creating schedule'));
         }
     }
-    
+
     async updateSchedule(req, res, next) {
         try {
             const { id } = req.params;
             const { scheduleId, updates } = req.body; // updates: { class: 'Physics', date: '2023-10-11', time: '11:00 AM' }
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             const schedule = personnel.schedule.id(scheduleId);
             if (!schedule) {
                 throw createError(404, 'Schedule not found');
             }
-    
+
             Object.assign(schedule, updates);
             await personnel.save();
-    
+
             res.json({ message: 'Schedule updated successfully', schedule });
         } catch (error) {
             next(this.handleError(error, 'updating schedule'));
         }
     }
-    
+
     async getSchedule(req, res, next) {
         try {
             const { id } = req.params;
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             res.json({ schedule: personnel.schedule });
         } catch (error) {
             next(this.handleError(error, 'fetching schedule'));
@@ -357,46 +458,46 @@ class PersonnelController extends BaseController {
         try {
             const { id } = req.params;
             const { date, status } = req.body; // status: 'present', 'absent', 'late'
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.attendance.push({ date, status });
             await personnel.save();
-    
+
             res.status(201).json({ message: 'Attendance marked successfully', attendance: { date, status } });
         } catch (error) {
             next(this.handleError(error, 'marking attendance'));
         }
     }
-    
+
     async getAttendance(req, res, next) {
         try {
             const { id } = req.params;
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             res.json({ attendance: personnel.attendance });
         } catch (error) {
             next(this.handleError(error, 'fetching attendance'));
         }
     }
-    
+
     async requestLeave(req, res, next) {
         try {
             const { id } = req.params;
             const { leaveType, startDate, endDate, reason } = req.body;
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.leaveHistory.push({
                 leaveType,
                 leaveStartDate: startDate,
@@ -404,33 +505,33 @@ class PersonnelController extends BaseController {
                 reason,
                 approvalStatus: 'pending',
             });
-    
+
             await personnel.save();
-    
+
             res.status(201).json({ message: 'Leave request submitted successfully', leaveRequest: personnel.leaveHistory.slice(-1)[0] });
         } catch (error) {
             next(this.handleError(error, 'requesting leave'));
         }
     }
-    
+
     async approveLeave(req, res, next) {
         try {
             const { id, leaveId } = req.params;
             const { status } = req.body; // status: 'approved', 'rejected'
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             const leaveRequest = personnel.leaveHistory.id(leaveId);
             if (!leaveRequest) {
                 throw createError(404, 'Leave request not found');
             }
-    
+
             leaveRequest.approvalStatus = status;
             await personnel.save();
-    
+
             res.json({ message: 'Leave request updated successfully', leaveRequest });
         } catch (error) {
             next(this.handleError(error, 'approving leave'));
@@ -441,15 +542,15 @@ class PersonnelController extends BaseController {
         try {
             const { id } = req.params;
             const { subjects } = req.body; // subjects: ['Math', 'Physics']
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.assignedSubjects = subjects;
             await personnel.save();
-    
+
             res.json({ message: 'Subjects assigned successfully', assignedSubjects: personnel.assignedSubjects });
         } catch (error) {
             next(this.handleError(error, 'assigning subjects'));
@@ -459,15 +560,15 @@ class PersonnelController extends BaseController {
     async suspendTeacher(req, res, next) {
         try {
             const { id } = req.params;
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.employmentStatus = 'suspended';
             await personnel.save();
-    
+
             res.json({ message: 'Teacher suspended successfully', personnel });
         } catch (error) {
             next(this.handleError(error, 'suspending teacher'));
@@ -478,15 +579,15 @@ class PersonnelController extends BaseController {
         try {
             const { id } = req.params;
             const { newRole } = req.body; // newRole: 'seniorTeacher', 'coordinator'
-    
+
             const personnel = await Personnel.findById(id);
             if (!personnel) {
                 throw createError(404, 'Personnel not found');
             }
-    
+
             personnel.role = newRole;
             await personnel.save();
-    
+
             res.json({ message: 'Teacher role updated successfully', personnel });
         } catch (error) {
             next(this.handleError(error, 'updating teacher role'));
