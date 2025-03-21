@@ -32,7 +32,7 @@ class CourseController extends BaseController {
                 .populate('module', 'name')
                 .populate('instructors', 'name email')
                 .populate('department.departmentInfo', 'name code');
-            console.log(courses);
+            // console.log(courses);
             res.json(courses);
         } catch (error) {
             next(this.handleError(error, 'fetching all courses'));

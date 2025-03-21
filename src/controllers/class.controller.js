@@ -27,11 +27,11 @@ const classController = {
             if (department) filter.department = department;
             if (academicYear) filter.academicYear = academicYear;
             const classes = await Class.find(filter)
-                .populate('department', 'name')
-                .populate('classTeacher', 'name')
-                .populate('courses.course', 'name code credits')
-                .populate('courses.lecturer', 'name email');
-            console.log(classes)
+                // .populate('department', 'name')
+                // .populate('classTeacher', 'name')
+                // .populate('courses.course', 'name code credits')
+                // .populate('courses.lecturer', 'name email');
+            // console.log(classes)
             res.status(200).json(classes);
         } catch (error) {
             throw new ApiError(error.statusCode || 500, error.message);

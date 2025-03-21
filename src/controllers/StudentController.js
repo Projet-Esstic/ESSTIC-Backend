@@ -3,10 +3,11 @@ import Student from '../models/Student.js';
 import User from '../models/User.js';
 import Candidate from '../models/Candidate.js';
 import Department from '../models/Departement.js';
-import {AcademicYear} from '../models/AcademicYear.js';
+import { AcademicYear } from '../models/AcademicYear.js';
 import createError from 'http-errors';
 import mongoose from 'mongoose';
 import { sendStudentRegistrationEmail } from '../services/email.service.js';
+import Semester from '../models/Semester.js';
 
 export const registerStudent = async (req, res) => {
     try {
@@ -305,21 +306,59 @@ export const studentBrief = async (req, res) => {
 
 // Function to add students from a JSON file
 export const addStudentsArrayJson = async (req, res) => {
+    const session = await mongoose.startSession(); // Start a new session
+    session.startTransaction(); // Start the transaction
+
     try {
-        let jsonData = req.body
+        let jsonData = req.body;
+
         // Validate that jsonData is an array
         if (!Array.isArray(jsonData)) {
             return res.status(400).json({ message: 'Invalid JSON format. Expecting an array of students.' });
         }
 
         const studentsAdded = [];
+        let level = "level_1", academicYear = "2024-2025";
 
+        // Fetching the semesters with population and formatting
+        const semesters = await Semester.find({ level, academicYear })
+            .populate({
+                path: 'modules',
+                select: 'moduleCode courses department',
+                populate: [
+                    {
+                        path: 'courses',
+                        select: 'courseCode department',
+                        populate: [
+                            { path: 'department.departmentInfo', select: 'name' }
+                        ]
+                    },
+                    { path: 'department.departmentInfo', select: 'name' }
+                ]
+            })
+            .populate('createdBy', 'firstName lastName')
+            .session(session); // Use session in the query
+
+        const formattedSemesters = semesters.map(semester => ({
+            ...semester.toObject(),
+            semesterInfo: semester._id,
+            modules: semester.modules.map(module => ({
+                ...module.toObject(),
+                moduleInfo: module._id,  // Renaming
+                courses: module.courses.map(course => ({
+                    ...course.toObject(),
+                    courseInfo: course._id  // Renaming
+                }))
+            }))
+        }));
+
+        // Loop through each student in the request body
         for (const studentData of jsonData) {
-            const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, region, 
-                candidateId, level, departmentId, academicYearIds, classId } = studentData;
+            const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, region,
+                candidateId, level, departmentId, classId } = studentData;
 
             // Check if user already exists
-            let user = await User.findOne({ email });
+            let user = await User.findOne({ email }).session(session); // Use session
 
             if (!user) {
                 // Create new user
@@ -335,18 +374,27 @@ export const addStudentsArrayJson = async (req, res) => {
                     region,
                     roles: ['student']  // Assign student role
                 });
-                await user.save();
+                await user.save({ session }); // Save with session
             }
 
             // Check if candidate exists
-            const candidate = await Candidate.findById(candidateId);
+            const candidate = await Candidate.findById(candidateId).session(session); // Use session
 
             // Check if department exists
-            const department = await Department.findById(departmentId);
+            const department = await Department.findById(departmentId).session(session); // Use session
             if (!department) {
                 console.log({ message: `Department with ID ${departmentId} not found.` });
                 continue;
             }
+
+            // Create academic year module
+            const academicYearModule = new AcademicYear({
+                classes: classId,
+                department: department?._id,
+                level,
+                year: academicYear,
+                semesters: formattedSemesters,
+            });
 
             // Create student record
             const student = new Student({
@@ -354,21 +402,41 @@ export const addStudentsArrayJson = async (req, res) => {
                 candidate: candidate?._id,
                 level,
                 department: department?._id,
-                academicYears: academicYearIds,
+                academicYears: academicYearModule._id,
                 classes: classId || null  // Optional class field
             });
 
-            // await student.save();
-            studentsAdded.push(student);
+            academicYearModule.student = student._id;
+
+            // Save academic year module and student with session
+            await academicYearModule.save({ session });
+            await student.save({ session });
+
+            studentsAdded.push({
+                "student": student,
+                "academicYear": academicYearModule,
+                "user": user,
+            });
         }
 
-        res.status(201).json({ message: 'Students added successfully', students: studentsAdded });
+        // If everything was successful, commit the transaction
+        await session.commitTransaction();
+        session.endSession(); // End the session
+
+        res.status(201).json({
+            message: 'Students added successfully',
+            students: studentsAdded,
+        });
 
     } catch (error) {
+        // If any error happens, abort the transaction
+        await session.abortTransaction();
+        session.endSession(); // End the session
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
 
 class StudentController extends BaseController {
     constructor() {
@@ -390,6 +458,7 @@ class StudentController extends BaseController {
         try {
             const students = await Student.find()
                 .populate('user')
+                .populate('academicYears')
                 .populate({
                     path: 'candidate',
                     select: 'fieldOfStudy',
@@ -407,10 +476,10 @@ class StudentController extends BaseController {
         try {
             const student = await Student.findById(req.params.id)
                 .populate('user')
-                // .populate({
-                //     path: 'courses',
-                //     populate: { path: 'courseId', select: 'courseName courseCode' }
-                // });
+            // .populate({
+            //     path: 'courses',
+            //     populate: { path: 'courseId', select: 'courseName courseCode' }
+            // });
 
             if (!student) {
                 throw createError(404, 'Student not found');

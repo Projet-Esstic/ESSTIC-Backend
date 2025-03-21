@@ -69,8 +69,8 @@ const courseModuleSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-courseModuleSchema.virtual('fullDescription').get(function() {
-   return `${this.moduleCode}: ${this.description}`;
+courseModuleSchema.virtual('name').get(function() {
+   return `${this.moduleCode}: ${this.moduleUnit}`;
 });
 
 // Middleware to handle adding module to Semester

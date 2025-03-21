@@ -69,4 +69,22 @@ class AcademicYearController extends BaseController {
             next(this.handleError(error, 'fetching all semesters'));
         }
     }
+    async getStudentsAcademicYear(req, res) {
+        const { academicYear, level } = req.params;
+
+        const students = await AcademicYear.find({ level, academicYear })
+            .populate({
+                path: 'student',
+                select: 'user',
+                populate: [
+                    {
+                        path: 'user',
+                    }
+                ]
+            });
+        res.json(students);
+
+    }
 }
+
+export default new AcademicYearController();
