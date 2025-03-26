@@ -100,6 +100,99 @@ class CourseController extends BaseController {
         }
     }
 
+    async addCourseAssessment(req, res, next) {
+        try {
+            const id = req.body.course;
+            console.log(req.body);
+            console.log(id);
+            const updatedCourse = await Course.findOne(
+                { _id: id },
+            )
+            if (!updatedCourse) throw createError(404, 'Course not found');
+            console.log(updatedCourse.assessmentStatus);
+            updatedCourse.assessmentStatus.push(req.body);
+            console.log("updatedCourse", updatedCourse.assessmentStatus);
+            updatedCourse.save()
+            res.json(updatedCourse);
+        } catch (error) {
+            next(this.handleError(error, 'updating course'));
+        }
+    }
+
+    async updateCourseAssessment(req, res, next) {
+        try {
+            const id = req.body.course;
+            console.log(req.body);
+            console.log(id);
+            const updatedCourse = await Course.findOne(
+                { _id: id },
+            )
+            if (!updatedCourse) throw createError(404, 'Course not found');
+            console.log(updatedCourse.assessmentStatus);
+            updatedCourse.assessmentStatus.filter(opt => opt.type === req.body.type)[0].isActive = !req.body.isActive
+            console.log("updatedCourse", updatedCourse.assessmentStatus);
+            updatedCourse.save()
+            res.json(updatedCourse);
+        } catch (error) {
+            next(this.handleError(error, 'updating course'));
+        }
+    }
+
+    async getAllCoursesAddAssessment(req, res) {
+        try {
+            // Fetch all courses
+            const courses = await Course.find()
+                .populate('module', 'name') // Populate module details
+                .populate('instructors', 'name email') // Populate instructor details
+                .populate('department.departmentInfo', 'name') // Populate department details
+                .lean(); // Convert Mongoose documents to plain objects for better performance
+
+            // Array to hold courses that need updates
+            const coursesToUpdate = [];
+
+            const updatedCourses = await Promise.all(courses.map(async (course) => {
+                // if (!course.assessmentStatus || course.assessmentStatus.length === 0) {
+                const defaultAssessment = [
+                    { type: "CC", weight: 60, isActive: true },
+                    { type: "Exam", weight: 40, isActive: true },
+                    // { type: "Resit", weight: 50, isActive: true },
+                ];
+
+                // Push to update array
+                coursesToUpdate.push({
+                    id: course._id,
+                    assessmentStatus: defaultAssessment
+                });
+
+                // Return updated course data
+                return {
+                    ...course,
+                    assessmentStatus: defaultAssessment
+                };
+                // }
+                // return course;
+            }));
+
+            // Update only necessary courses in the database
+            for (const update of coursesToUpdate) {
+                await Course.findByIdAndUpdate(update.id, { assessmentStatus: update.assessmentStatus }, { new: true });
+            }
+
+            res.status(200).json({
+                success: true,
+                count: updatedCourses.length,
+                courses: updatedCourses
+            });
+        } catch (error) {
+            console.error("Error fetching courses:", error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to fetch courses",
+                error: error.message
+            });
+        }
+    }
+
     async updateCourse(req, res, next) {
         try {
             const { id, } = req.params;

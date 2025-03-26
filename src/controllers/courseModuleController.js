@@ -20,6 +20,7 @@ export const getAllCourseModules = async (req, res) => {
         const { level, year } = req.params;
         const modules = await CourseModule.find({ level, year })
             .populate('semester')
+            .populate('courses')
             .populate('department.departmentInfo');
 
         res.status(200).json(modules);

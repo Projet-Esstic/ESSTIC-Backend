@@ -11,12 +11,13 @@ const courseSchema = new mongoose.Schema({
     assessments: [{
         type: {
             type: String,
-            required: true
+            required: true,
+            enum: ['CC', 'Exam', 'Resit'],
         },
         currentMark: { type: Number, default: 0, min: 0, max: 20 },
-        weight: { type: Number, default: 0, min: 0, max: 100 },
-        hasWritten: { type: Boolean, default: false },
-        hasJustified: { type: Boolean, default: false },
+        // weight: { type: Number, default: 0, min: 0, max: 100 },
+        // hasWritten: { type: Boolean, default: false },
+        // hasJustified: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },
         modified: [{
             preMark: { type: Number, required: true, min: 0, max: 20 },
@@ -28,7 +29,7 @@ const courseSchema = new mongoose.Schema({
             dateModified: { type: Date, default: Date.now }
         }]
     }],
-    courseAverage: { type: Number, default: 0, min: 0, max: 20 },
+    // courseAverage: { type: Number, default: 0, min: 0, max: 20 },
 });
 
 // Pre-save middleware to calculate courseAverage

@@ -319,7 +319,26 @@ export const addStudentsArrayJson = async (req, res) => {
 
         const studentsAdded = [];
         let level = "level_1", academicYear = "2024-2025";
-
+        let assessment = [
+            {
+                "type": "CC",
+                "currentMark": 0,
+                "isActive": true,
+                "modified": []
+            },
+            {
+                "type": "Exam",
+                "currentMark": 0,
+                "isActive": true,
+                "modified": []
+            },
+            {
+                "type": "Resit",
+                "currentMark": 0,
+                "isActive": true,
+                "modified": []
+            }
+        ]
         // Fetching the semesters with population and formatting
         const semesters = await Semester.find({ level, academicYear })
             .populate({
@@ -347,7 +366,8 @@ export const addStudentsArrayJson = async (req, res) => {
                 moduleInfo: module._id,  // Renaming
                 courses: module.courses.map(course => ({
                     ...course.toObject(),
-                    courseInfo: course._id  // Renaming
+                    courseInfo: course._id,  // Renaming
+                    assessments: assessment
                 }))
             }))
         }));
@@ -395,22 +415,27 @@ export const addStudentsArrayJson = async (req, res) => {
                 year: academicYear,
                 semesters: formattedSemesters,
             });
-
-            // Create student record
-            const student = new Student({
-                user: user._id,
-                candidate: candidate?._id,
-                level,
-                department: department?._id,
-                academicYears: academicYearModule._id,
-                classes: classId || null  // Optional class field
-            });
-
+            let student = await Student.findOne({ user: user._id }).session(session); // Use session
+            let existStudent = true
+            if (!student) {
+                existStudent = false
+                // Create student record
+                student = new Student({
+                    user: user._id,
+                    candidate: candidate?._id,
+                    level,
+                    department: department?._id,
+                    academicYears: academicYearModule._id,
+                    classes: classId || null  // Optional class field
+                });
+            }
+            console.log("existStudent",existStudent)
             academicYearModule.student = student._id;
 
             // Save academic year module and student with session
             await academicYearModule.save({ session });
-            await student.save({ session });
+            if (!existStudent)
+                await student.save({ session });
 
             studentsAdded.push({
                 "student": student,

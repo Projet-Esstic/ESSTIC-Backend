@@ -11,6 +11,9 @@ router.get('/:level/:year/not-entrance', courseController.getAllNotEntranceCours
 router.get('/:level/:year/:id', authenticate, courseController.getCourse);
 router.post('/',  courseController.createCourse);
 router.put('/:id',  courseController.updateCourse);
+router.post('/add-assessment',  courseController.addCourseAssessment);
+router.post('/all-assessment',  courseController.getAllCoursesAddAssessment);
+router.post('/update-assessment',  courseController.updateCourseAssessment);
 router.delete('/:id', courseController.deleteCourse);
 router.post('/add-multiple-courses', courseController.addManyCourses);
 

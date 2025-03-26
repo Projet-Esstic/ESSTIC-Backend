@@ -22,6 +22,15 @@ const courseSchema = new mongoose.Schema({
         type: Boolean,
         default: true // Marks if the department is still active
     },
+    assessmentStatus: [{
+        type: {
+            type: String,
+            required: true,
+            enum: ['CC', 'Exam', 'Resit'],
+        },
+        weight: { type: Number, default: 0, min: 0, max: 100 },
+        isActive: { type: Boolean, default: true },
+    }],
     // Multiple instructors allowed but not required initially.
     instructors: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -101,6 +110,11 @@ const courseSchema = new mongoose.Schema({
     timestamps: true
 });
 
+courseSchema.path('assessmentStatus').validate(function (value) {
+    const types = value.map(item => item.type);
+    return types.length === new Set(types).size; // Ensure no duplicate `type`
+}, 'Each type in assessmentStatus must be unique.');
+
 // Pre-save middleware to validate department structure and to check if the course exists in the referenced module's courses array
 courseSchema.pre('save', async function (next) {
     if (this.isEntranceExam) {
@@ -117,7 +131,7 @@ courseSchema.pre('save', async function (next) {
             const CourseModule = mongoose.model('CourseModule');
             const module = await CourseModule.findById(this.module);
             if (module) {
-                if (!module.courses) 
+                if (!module.courses)
                     module.courses = []
                 console.log(module.courses)
                 if (!module.courses.includes(this._id)) {

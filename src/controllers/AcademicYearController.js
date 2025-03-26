@@ -40,6 +40,26 @@ class AcademicYearController extends BaseController {
                 })
                 .populate('createdBy', 'firstName lastName');
 
+            let assessment = [
+                {
+                    "type": "CC",
+                    "currentMark": 0,
+                    "isActive": true,
+                    "modified": []
+                },
+                {
+                    "type": "Exam",
+                    "currentMark": 0,
+                    "isActive": true,
+                    "modified": []
+                },
+                {
+                    "type": "Resit",
+                    "currentMark": 0,
+                    "isActive": true,
+                    "modified": []
+                }
+            ]
             const formattedSemesters = semesters.map(semester => ({
                 ...semester.toObject(),
                 semesterInfo: semester._id,
@@ -48,7 +68,8 @@ class AcademicYearController extends BaseController {
                     moduleInfo: module._id,  // Renaming
                     courses: module.courses.map(course => ({
                         ...course.toObject(),
-                        courseInfo: course._id  // Renaming
+                        courseInfo: course._id,  // Renaming
+                        assessments: assessment
                     }))
                 }))
             }));
