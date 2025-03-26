@@ -12,6 +12,7 @@ router.get('/',
     studentController.getAllStudents);
 
 router.get('/academic/:level/:year', AcademicYearController.getStudentsAcademicYear);    
+router.post('/academic/add-mark', AcademicYearController.updateStudentMark);    
 
 // Routes for Student operations
 router.get('/:id',

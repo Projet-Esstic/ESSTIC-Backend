@@ -63,7 +63,7 @@ const moduleSchema = new mongoose.Schema({
         ref: 'CourseModule',
         required: true
     },
-    moduleAverage: { type: Number, required: true, default: 0 },
+   
     isActive: { type: Boolean, default: true },
     courses: { type: [courseSchema], required: true },
 });

@@ -153,9 +153,9 @@ class CourseController extends BaseController {
             const updatedCourses = await Promise.all(courses.map(async (course) => {
                 // if (!course.assessmentStatus || course.assessmentStatus.length === 0) {
                 const defaultAssessment = [
-                    { type: "CC", weight: 60, isActive: true },
-                    { type: "Exam", weight: 40, isActive: true },
-                    // { type: "Resit", weight: 50, isActive: true },
+                    { type: "CC", weight: 60, isActive: false },
+                    { type: "Exam", weight: 40, isActive: false },
+                    { type: "Resit", weight: 100, isActive: false },
                 ];
 
                 // Push to update array
